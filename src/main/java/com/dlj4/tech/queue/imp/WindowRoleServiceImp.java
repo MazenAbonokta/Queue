@@ -30,16 +30,12 @@ public class WindowRoleServiceImp implements WindowRoleService {
     @Override
     public void AssignRolesToWindow(WindowRoleDTO windowRoleDTO) {
         List<WindowRole> windowRoles =new ArrayList<>();
-
         Window window=windowService.getWindowByID(windowRoleDTO.getWindowId());
-
         windowRoles.addAll(windowRoleDTO.getServiceIds()
                 .stream()
                 .map(s->
                         objectsDataMapper.createWindowEntity(window,serviceService.getServiceById(s)))
                 .collect(Collectors.toList()));
         windowRoleRepository.saveAll(windowRoles);
-
     }
-
 }

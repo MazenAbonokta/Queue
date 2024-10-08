@@ -1,12 +1,15 @@
 package com.dlj4.tech.queue.mapper;
 
+import com.dlj4.tech.queue.dto.OrderDTO;
 import com.dlj4.tech.queue.dto.ServiceDTO;
 import com.dlj4.tech.queue.dto.WindowDTO;
-import com.dlj4.tech.queue.entity.Category;
-import com.dlj4.tech.queue.entity.Service;
-import com.dlj4.tech.queue.entity.Window;
-import com.dlj4.tech.queue.entity.WindowRole;
+import com.dlj4.tech.queue.entity.*;
+import com.dlj4.tech.queue.enums.OrderStatus;
 import org.springframework.stereotype.Component;
+
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 @Component
 public class ObjectsDataMapper {
@@ -33,5 +36,13 @@ public class ObjectsDataMapper {
                 .service(service)
                 .build();
     }
-
+    public Order createOrderEntity(Window window,Service service,Long CurrentNumber){
+        return Order.builder()
+                .createdAt(ZonedDateTime.now(ZoneId.of("UTC")))
+                .orderStatus(OrderStatus.PENDING)
+                .currentNumber(CurrentNumber)
+                .service(service)
+                .window(window)
+                .build();
+    }
 }
