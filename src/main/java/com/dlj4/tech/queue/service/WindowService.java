@@ -8,5 +8,7 @@ public interface WindowService {
     public void createWindow(WindowDTO windowDTO);
 
     public Window getWindowByID(Long WindowId);
+    public void removeWindow(Long windowID);
+
 
 }

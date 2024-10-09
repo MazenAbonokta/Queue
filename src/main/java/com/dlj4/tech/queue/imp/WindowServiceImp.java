@@ -44,6 +44,13 @@ public class WindowServiceImp implements WindowService {
         return  window.get();
     }
 
+    @Override
+    public void removeWindow(Long windowID) {
+        Window window =getWindowByID(windowID);
+        windowRepository.delete(window);
+
+    }
+
     private void validateIpAddress(String IpAddress)
     {
         Optional<Window> window=windowRepository.findByIpAddress(IpAddress);

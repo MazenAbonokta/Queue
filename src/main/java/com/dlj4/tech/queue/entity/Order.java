@@ -20,7 +20,7 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     Long currentNumber;
-    private ZonedDateTime createdAt;
+    private ZonedDateTime updatedAt;
     private ZonedDateTime callDate;
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;

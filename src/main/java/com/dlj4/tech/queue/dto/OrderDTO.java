@@ -17,5 +17,7 @@ import java.time.ZonedDateTime;
 public class OrderDTO {
 
     Long WindowId;
+    Long OrderId;
     Long ServiceId;
+    OrderStatus orderStatus;
 }
