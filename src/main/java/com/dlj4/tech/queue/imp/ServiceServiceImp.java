@@ -1,10 +1,7 @@
 package com.dlj4.tech.queue.imp;
 
-import com.dlj4.tech.queue.dto.ServiceDTO;
-import com.dlj4.tech.queue.dto.WindowRoleDTO;
+import com.dlj4.tech.queue.dao.request.ServiceDAO;
 import com.dlj4.tech.queue.entity.Category;
-import com.dlj4.tech.queue.entity.WindowRole;
-import com.dlj4.tech.queue.exception.ResourceAlreadyExistException;
 import com.dlj4.tech.queue.exception.ResourceNotFoundException;
 import com.dlj4.tech.queue.mapper.ObjectsDataMapper;
 import com.dlj4.tech.queue.repository.ServiceRepository;
@@ -13,8 +10,6 @@ import com.dlj4.tech.queue.service.ServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -28,9 +23,9 @@ public class ServiceServiceImp implements ServiceService {
     CategoryService categoryService;
 
     @Override
-    public void createService(ServiceDTO serviceDTO) {
+    public void createService(ServiceDAO serviceDAO) {
 
-        serviceRepository.save(getServiceEntity(serviceDTO));
+        serviceRepository.save(getServiceEntity(serviceDAO));
 
     }
 
@@ -45,10 +40,10 @@ public class ServiceServiceImp implements ServiceService {
     }
 
 
-    com.dlj4.tech.queue.entity.Service getServiceEntity(ServiceDTO serviceDTO){
-        Category category=categoryService.getCategoryById(serviceDTO.getCategoryId());
+    com.dlj4.tech.queue.entity.Service getServiceEntity(ServiceDAO serviceDAO){
+        Category category=categoryService.getCategoryById(serviceDAO.getCategoryId());
 
-        com.dlj4.tech.queue.entity.Service service = objectsDataMapper.serviceDTOToServiceEntity(serviceDTO,category);
+        com.dlj4.tech.queue.entity.Service service = objectsDataMapper.serviceDTOToServiceEntity(serviceDAO,category);
         return service;
     }
 }

@@ -1,4 +1,4 @@
-package com.dlj4.tech.queue.dto;
+package com.dlj4.tech.queue.dao.response;
 
 
 import lombok.AllArgsConstructor;

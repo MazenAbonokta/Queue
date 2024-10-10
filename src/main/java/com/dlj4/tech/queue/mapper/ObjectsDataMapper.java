@@ -1,33 +1,32 @@
 package com.dlj4.tech.queue.mapper;
 
-import com.dlj4.tech.queue.dto.OrderDTO;
-import com.dlj4.tech.queue.dto.ServiceDTO;
-import com.dlj4.tech.queue.dto.WindowDTO;
+import com.dlj4.tech.queue.dao.request.ServiceDAO;
+import com.dlj4.tech.queue.dao.request.UserDAO;
+import com.dlj4.tech.queue.dao.request.WindowDAO;
 import com.dlj4.tech.queue.entity.*;
 import com.dlj4.tech.queue.enums.OrderStatus;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
-
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 
 @Component
 public class ObjectsDataMapper {
-
-    public Service serviceDTOToServiceEntity(ServiceDTO serviceDTO, Category category){
+    @Autowired
+    private BCryptPasswordEncoder bcryptEncoder;
+    public Service serviceDTOToServiceEntity(ServiceDAO serviceDAO, Category category){
         return Service.builder()
-                .start(serviceDTO.getStart())
-                .end(serviceDTO.getEnd())
+                .start(serviceDAO.getStart())
+                .end(serviceDAO.getEnd())
                 .category(category)
-                .code(serviceDTO.getCode())
+                .code(serviceDAO.getCode())
 
                 .build();
 
     }
-    public Window windowDTOToWindowEntity(WindowDTO windowDTO){
+    public Window windowDTOToWindowEntity(WindowDAO windowDAO){
         return Window.builder()
-                .windowNumber(windowDTO.getWindowNumber())
-                .ipAddress(windowDTO.getIpAddress())
+                .windowNumber(windowDAO.getWindowNumber())
+                .ipAddress(windowDAO.getIpAddress())
                 .build();
     }
     public WindowRole createWindowEntity(Window window,Service service){
@@ -38,11 +37,22 @@ public class ObjectsDataMapper {
     }
     public Order createOrderEntity(Window window,Service service,Long CurrentNumber){
         return Order.builder()
-                .createdAt(ZonedDateTime.now(ZoneId.of("UTC")))
+
                 .orderStatus(OrderStatus.PENDING)
                 .currentNumber(CurrentNumber)
                 .service(service)
                 .window(window)
+                .build();
+    }
+
+    public User userDTOToUser(UserDAO userDAO){
+        return User.builder()
+
+                .username(userDAO.getUsername())
+                .name(userDAO.getName())
+                .email(userDAO.getEmail())
+                .phone(userDAO.getPhone())
+                .password(bcryptEncoder.encode(userDAO.getPassword()) )
                 .build();
     }
 }

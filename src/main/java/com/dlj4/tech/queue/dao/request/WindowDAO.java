@@ -1,4 +1,4 @@
-package com.dlj4.tech.queue.dto;
+package com.dlj4.tech.queue.dao.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class WindowDTO {
+public class WindowDAO {
     String ipAddress;
     Long windowNumber;
 }

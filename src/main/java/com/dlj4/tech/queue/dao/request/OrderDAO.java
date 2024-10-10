@@ -1,20 +1,16 @@
-package com.dlj4.tech.queue.dto;
+package com.dlj4.tech.queue.dao.request;
 
 import com.dlj4.tech.queue.enums.OrderStatus;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.ZonedDateTime;
-
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class OrderDTO {
+public class OrderDAO {
 
     Long WindowId;
     Long OrderId;

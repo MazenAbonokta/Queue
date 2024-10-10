@@ -1,6 +1,6 @@
 package com.dlj4.tech.queue.controller;
 
-import com.dlj4.tech.queue.dto.OrderDTO;
+import com.dlj4.tech.queue.dao.request.OrderDAO;
 import com.dlj4.tech.queue.entity.Order;
 import com.dlj4.tech.queue.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +14,8 @@ public class OrderController {
     OrderService orderService;
 
     @PutMapping("/CallNextNumber")
-    public ResponseEntity<Order> CallNextNumber(@RequestBody OrderDTO orderDTO){
-        Order order = orderService.fetchNextOrder(orderDTO);
+    public ResponseEntity<Order> CallNextNumber(@RequestBody OrderDAO orderDAO){
+        Order order = orderService.fetchNextOrder(orderDAO);
         return new ResponseEntity<Order>(order, HttpStatus.OK);
     }
     @GetMapping("/ReCallNumber/{currentNumber}")
@@ -24,8 +24,8 @@ public class OrderController {
 
     }
     @PostMapping("/CreateOrder")
-    public void CreateOrder(@RequestBody OrderDTO orderDTO){
-        orderService.createOrder(orderDTO);
+    public void CreateOrder(@RequestBody OrderDAO orderDAO){
+        orderService.createOrder(orderDAO);
 
     }
 }

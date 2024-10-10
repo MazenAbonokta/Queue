@@ -1,6 +1,6 @@
 package com.dlj4.tech.queue.exception;
 
-import com.dlj4.tech.queue.dto.ErrorResponseDto;
+import com.dlj4.tech.queue.dao.response.ErrorResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

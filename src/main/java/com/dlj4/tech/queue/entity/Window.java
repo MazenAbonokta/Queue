@@ -24,5 +24,8 @@ public class Window {
     List<Order> orders;
     @OneToMany(mappedBy = "window", cascade = CascadeType.ALL, orphanRemoval = true)
     List<WindowRole> windowRoles;
+    @OneToOne(mappedBy = "window")
+
+    User user;
 
 }

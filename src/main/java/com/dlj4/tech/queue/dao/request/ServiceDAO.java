@@ -1,4 +1,4 @@
-package com.dlj4.tech.queue.dto;
+package com.dlj4.tech.queue.dao.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class ServiceDTO {
+public class ServiceDAO {
     private String  code;
     private int start;
     private  int end;

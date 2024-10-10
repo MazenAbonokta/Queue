@@ -1,9 +1,7 @@
 package com.dlj4.tech.queue.imp;
 
-import com.dlj4.tech.queue.dto.WindowDTO;
-import com.dlj4.tech.queue.dto.WindowRoleDTO;
+import com.dlj4.tech.queue.dao.request.WindowDAO;
 import com.dlj4.tech.queue.entity.Window;
-import com.dlj4.tech.queue.entity.WindowRole;
 import com.dlj4.tech.queue.exception.ResourceAlreadyExistException;
 import com.dlj4.tech.queue.exception.ResourceNotFoundException;
 import com.dlj4.tech.queue.mapper.ObjectsDataMapper;
@@ -13,10 +11,7 @@ import com.dlj4.tech.queue.service.WindowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class WindowServiceImp implements WindowService {
@@ -27,10 +22,10 @@ public class WindowServiceImp implements WindowService {
     @Autowired
     ObjectsDataMapper objectsDataMapper;
     @Override
-    public void createWindow(WindowDTO windowDTO) {
+    public void createWindow(WindowDAO windowDAO) {
 
-        validateIpAddress(windowDTO.getIpAddress());
-        Window window = objectsDataMapper.windowDTOToWindowEntity(windowDTO);
+        validateIpAddress(windowDAO.getIpAddress());
+        Window window = objectsDataMapper.windowDTOToWindowEntity(windowDAO);
         windowRepository.save(window);
     }
 
