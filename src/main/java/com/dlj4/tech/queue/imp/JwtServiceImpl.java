@@ -5,6 +5,7 @@ import com.dlj4.tech.queue.exception.TokenNotFoundException;
 import com.dlj4.tech.queue.repository.TokenRepository;
 import com.dlj4.tech.queue.service.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -21,9 +22,10 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
-@RequiredArgsConstructor
+
 public class JwtServiceImpl implements JwtService {
-    private final TokenRepository tokenRepository;
+    @Autowired
+    private  TokenRepository tokenRepository;
 
     @Value("${token.signing.key}")
     private String jwtSigningKey;
@@ -84,7 +86,7 @@ public class JwtServiceImpl implements JwtService {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(getSigningKey(jwtSigningKey)).build().parseClaimsJws(token)
+        return Jwts.parserBuilder().setSigningKey(getSigningKey(jwtSigningKey)).build().parseClaimsJws(token)
                 .getBody();
     }
 

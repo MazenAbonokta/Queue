@@ -5,6 +5,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface UserService {
 
-    public void register(UserDAO userDAO);
+
     UserDetailsService userDetailService();
 }

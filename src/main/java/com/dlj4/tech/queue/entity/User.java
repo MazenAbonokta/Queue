@@ -25,7 +25,7 @@ public class User implements UserDetails {
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private long id;
 
-    @Column
+    @Column(unique = true)
     private String username;
 
     @Column
@@ -44,9 +44,11 @@ public class User implements UserDetails {
     Role role;
 
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "window_id", referencedColumnName = "id")
     private Window window;
+
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

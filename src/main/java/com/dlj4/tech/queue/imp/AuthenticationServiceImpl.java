@@ -1,7 +1,11 @@
 package com.dlj4.tech.queue.imp;
 import com.dlj4.tech.queue.dao.request.UserDAO;
 import com.dlj4.tech.queue.entity.Token;
+import com.dlj4.tech.queue.entity.User;
+import com.dlj4.tech.queue.enums.Role;
 import com.dlj4.tech.queue.exception.RefreshTokenNotFoundException;
+import com.dlj4.tech.queue.exception.ResourceAlreadyExistException;
+import com.dlj4.tech.queue.mapper.ObjectsDataMapper;
 import com.dlj4.tech.queue.repository.TokenRepository;
 import com.dlj4.tech.queue.repository.UserRepository;
 import com.dlj4.tech.queue.dao.request.RefreshRequest;
@@ -10,6 +14,7 @@ import com.dlj4.tech.queue.dao.response.JwtAuthenticationResponse;
 import com.dlj4.tech.queue.service.AuthenticationService;
 import com.dlj4.tech.queue.service.JwtService;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,15 +25,21 @@ import lombok.RequiredArgsConstructor;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
-public class AuthenticationServiceImpl implements AuthenticationService {
-    private final UserRepository userRepository;
-    private final TokenRepository tokenRepository;
-    private final JwtService jwtService;
 
-    private final AuthenticationManager authenticationManager;
+public class AuthenticationServiceImpl implements AuthenticationService {
+    @Autowired
+    private  UserRepository userRepository;
+    @Autowired
+    private  TokenRepository tokenRepository;
+    @Autowired
+    private  JwtService jwtService;
+    @Autowired
+    ObjectsDataMapper objectsDataMapper;
+    @Autowired
+    private  AuthenticationManager authenticationManager;
 
     @Value("${token.access.token.expiration}")
     private long accessTokenExpiration;
@@ -76,5 +87,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public void signUp(UserDAO userDAO) {
 
+
+        User user = objectsDataMapper.userDTOToUser(userDAO);
+        Optional<User> checkedUser=userRepository.findByUsername(userDAO.getUsername());
+        if(checkedUser.isPresent())
+        {
+            throw new ResourceAlreadyExistException("User ["+userDAO.getUsername()+"]");
+        }
+         userRepository.save(user);
     }
 }

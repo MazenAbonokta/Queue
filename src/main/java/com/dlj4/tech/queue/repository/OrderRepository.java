@@ -10,6 +10,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface OrderRepository extends JpaRepository<Order,Long> {
     @Query("SELECT COALESCE(MAX(o.currentNumber), 0) FROM Order o WHERE o.service.id = :serviceId")
-    Long findMaxCurrentNumberByServiceId(@Param("ServiceId") Long ServiceId);
+    Long findMaxCurrentNumberByServiceId(@Param("serviceId") Long serviceId);
      Order findOrderByOrderStatusAndService_IdOrderByIdDesc( OrderStatus orderStatus,Long Service_Id);
 }

@@ -5,14 +5,17 @@ import com.dlj4.tech.queue.dao.request.UserDAO;
 import com.dlj4.tech.queue.dao.request.WindowDAO;
 import com.dlj4.tech.queue.entity.*;
 import com.dlj4.tech.queue.enums.OrderStatus;
+import com.dlj4.tech.queue.enums.Role;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ObjectsDataMapper {
     @Autowired
-    private BCryptPasswordEncoder bcryptEncoder;
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
     public Service serviceDTOToServiceEntity(ServiceDAO serviceDAO, Category category){
         return Service.builder()
                 .start(serviceDAO.getStart())
@@ -52,7 +55,8 @@ public class ObjectsDataMapper {
                 .name(userDAO.getName())
                 .email(userDAO.getEmail())
                 .phone(userDAO.getPhone())
-                .password(bcryptEncoder.encode(userDAO.getPassword()) )
+                .password(bCryptPasswordEncoder.encode(userDAO.getPassword()) )
+                .role(userDAO.getRole())
                 .build();
     }
 }

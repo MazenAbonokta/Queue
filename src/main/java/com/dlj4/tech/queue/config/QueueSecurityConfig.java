@@ -2,8 +2,10 @@ package com.dlj4.tech.queue.config;
 
 import com.dlj4.tech.queue.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -13,36 +15,46 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
+
 public class QueueSecurityConfig {
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final UserService userService;
+    @Autowired
+    AuthenticationProvider authenticationProvider;
+    @Autowired
+    private  JwtAuthenticationFilter jwtAuthenticationFilter;
+    @Autowired
+    private  UserService userService;
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity httpSecurity)   throws  Exception{
-        httpSecurity.authorizeHttpRequests(auth ->{
-            auth.anyRequest().authenticated();
-        });
+        httpSecurity.csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(request ->
+                        request.requestMatchers(  "/Authentication/**",
+                                        "/v1/api/get-token",
+                                        "/swagger-ui.html",
+                                        "/swagger-ui/*",
+                                        "/v3/api-docs/**",
+                                        "/swagger-resources/**",
+                                        "/webjars/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .exceptionHandling(exception -> {
+                    exception.authenticationEntryPoint(
+                            new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)
+                    );
+                })
+                .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
+
+                .authenticationProvider(authenticationProvider).addFilterBefore(
+                        jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
         return httpSecurity.build();
     }
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userService.userDetailService());
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
-            throws Exception {
-        return config.getAuthenticationManager();
-    }
 }
