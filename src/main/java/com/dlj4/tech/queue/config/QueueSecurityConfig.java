@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -30,12 +31,15 @@ public class QueueSecurityConfig {
     @Autowired
     private  JwtAuthenticationFilter jwtAuthenticationFilter;
     @Autowired
+
     private  UserService userService;
+    @Autowired CustomCorsConfiguration customCorsConfiguration;
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity httpSecurity)   throws  Exception{
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
+                .cors(c -> c.configurationSource(customCorsConfiguration))
                 .authorizeHttpRequests(request ->
-                        request.requestMatchers(  "/Authentication/**",
+                        request.requestMatchers(  "/auth/**",
                                         "/v1/api/get-token",
                                         "/swagger-ui.html",
                                         "/swagger-ui/*",

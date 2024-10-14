@@ -8,11 +8,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class UserDAO {
+public class UserRequest {
     private String username;
     private String password;
     private String email;
     private String phone;
     private String name;
+    private String status;
+    private String address;
+    private Long WindowId;
     private Role role;
 }

@@ -37,9 +37,13 @@ public class User implements UserDetails {
 
     @Column
     private String phone;
+    @Column
+    private String status;
 
     @Column
     private String name;
+    @Column
+    private String address;
     @Enumerated(EnumType.STRING)
     Role role;
 

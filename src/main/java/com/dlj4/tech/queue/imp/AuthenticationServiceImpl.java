@@ -1,10 +1,11 @@
 package com.dlj4.tech.queue.imp;
-import com.dlj4.tech.queue.dao.request.UserDAO;
+import com.dlj4.tech.queue.dao.request.UserRequest;
+import com.dlj4.tech.queue.dao.response.UserResponse;
 import com.dlj4.tech.queue.entity.Token;
 import com.dlj4.tech.queue.entity.User;
-import com.dlj4.tech.queue.enums.Role;
 import com.dlj4.tech.queue.exception.RefreshTokenNotFoundException;
 import com.dlj4.tech.queue.exception.ResourceAlreadyExistException;
+import com.dlj4.tech.queue.exception.ResourceNotFoundException;
 import com.dlj4.tech.queue.mapper.ObjectsDataMapper;
 import com.dlj4.tech.queue.repository.TokenRepository;
 import com.dlj4.tech.queue.repository.UserRepository;
@@ -19,8 +20,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
-
-import lombok.RequiredArgsConstructor;
 
 import java.util.Collections;
 import java.util.Date;
@@ -62,7 +61,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         var refreshToken = jwtService.generateRefreshToken(user);
         var expiresAt = new Date(System.currentTimeMillis() + accessTokenExpiration);
         tokenRepository.save(new Token(jwt, refreshToken, expiresAt, user, true));
-        return JwtAuthenticationResponse.builder().token(jwt).refreshToken(refreshToken).expiresAt(expiresAt).build();
+        return JwtAuthenticationResponse.builder().token(jwt).refreshToken(refreshToken).expiresAt(expiresAt).status("success").build();
     }
 
     @Override
@@ -76,7 +75,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             token.setIsActive(false);
             tokenRepository.save(token);
             tokenRepository.save(new Token(newAccessToken, newRefreshToken, expiresAt, user, true));
-            return new JwtAuthenticationResponse(newAccessToken, newRefreshToken, expiresAt);
+            return new JwtAuthenticationResponse(newAccessToken, newRefreshToken, expiresAt,"success");
 
         } else {
             tokenRepository.delete(token);
@@ -85,15 +84,34 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public void signUp(UserDAO userDAO) {
+    public UserResponse signUp(UserRequest userRequest) {
 
 
-        User user = objectsDataMapper.userDTOToUser(userDAO);
-        Optional<User> checkedUser=userRepository.findByUsername(userDAO.getUsername());
+        User user = objectsDataMapper.userDTOToUser(userRequest);
+        Optional<User> checkedUser=userRepository.findByUsername(userRequest.getUsername());
         if(checkedUser.isPresent())
         {
-            throw new ResourceAlreadyExistException("User ["+userDAO.getUsername()+"]");
+            throw new ResourceAlreadyExistException("User ["+ userRequest.getUsername()+"]");
         }
-         userRepository.save(user);
+        user=  userRepository.save(user);
+       UserResponse response=objectsDataMapper.userToUserResponse(user);
+       return  response;
+    }
+
+    @Override
+    public void updateUser(UserRequest userRequest) {
+      User user=userRepository.findByUsername(userRequest.getUsername())
+              .orElseThrow(()-> new ResourceNotFoundException("User not Exist"));
+
+      user=objectsDataMapper.copyUserRequestToUser(user,userRequest);
+      userRepository.save(user);
+    }
+
+    @Override
+    public void deleteUser(Long id) {
+       User user= userRepository.findById(id).orElseThrow(
+               ()->new ResourceNotFoundException("UserNotFound"));
+
+       userRepository.delete(user);
     }
 }
