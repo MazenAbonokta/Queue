@@ -1,6 +1,7 @@
 package com.dlj4.tech.queue.imp;
 
-import com.dlj4.tech.queue.dao.request.WindowDAO;
+import com.dlj4.tech.queue.dao.request.WindowRequest;
+import com.dlj4.tech.queue.dao.response.WindowResponse;
 import com.dlj4.tech.queue.entity.Window;
 import com.dlj4.tech.queue.exception.ResourceAlreadyExistException;
 import com.dlj4.tech.queue.exception.ResourceNotFoundException;
@@ -11,7 +12,10 @@ import com.dlj4.tech.queue.service.WindowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class WindowServiceImp implements WindowService {
@@ -22,11 +26,12 @@ public class WindowServiceImp implements WindowService {
     @Autowired
     ObjectsDataMapper objectsDataMapper;
     @Override
-    public void createWindow(WindowDAO windowDAO) {
+    public WindowResponse createWindow(WindowRequest windowRequest) {
 
-        validateIpAddress(windowDAO.getIpAddress());
-        Window window = objectsDataMapper.windowDTOToWindowEntity(windowDAO);
+        validateIpAddress(windowRequest.getIpAddress());
+        Window window = objectsDataMapper.windowDTOToWindowEntity(windowRequest);
         windowRepository.save(window);
+        return objectsDataMapper.windowToWindowResponse(window);
     }
 
     @Override
@@ -40,9 +45,27 @@ public class WindowServiceImp implements WindowService {
     }
 
     @Override
-    public void removeWindow(Long windowID) {
+    public void deleteWindow(Long windowID) {
         Window window =getWindowByID(windowID);
         windowRepository.delete(window);
+
+    }
+
+    @Override
+    public List<WindowResponse> getWindowsList() {
+        List<Window> windows= windowRepository.findAll();
+        List<WindowResponse> responses=windows.stream().map(
+                window -> objectsDataMapper.windowToWindowResponse(window)
+        ).collect(Collectors.toList());
+        return  responses;
+    }
+
+    @Override
+    public void updateWindow(Long id, WindowRequest windowRequest) {
+        Window window= getWindowByID(id);
+        window= objectsDataMapper.copyWindowRequestToWindow(windowRequest,window);
+        windowRepository.save(window);
+
 
     }
 

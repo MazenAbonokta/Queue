@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class WindowDAO {
+
+public class WindowRequest {
     String ipAddress;
-    Long windowNumber;
+    String windowNumber;
 }

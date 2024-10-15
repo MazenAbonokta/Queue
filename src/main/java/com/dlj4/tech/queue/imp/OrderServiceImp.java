@@ -2,6 +2,7 @@ package com.dlj4.tech.queue.imp;
 
 import com.dlj4.tech.queue.dao.request.OrderDAO;
 import com.dlj4.tech.queue.entity.Order;
+import com.dlj4.tech.queue.entity.ServiceEntity;
 import com.dlj4.tech.queue.entity.Window;
 import com.dlj4.tech.queue.enums.OrderStatus;
 import com.dlj4.tech.queue.exception.ResourceNotFoundException;
@@ -28,7 +29,7 @@ public class OrderServiceImp implements OrderService {
     ObjectsDataMapper objectsDataMapper;
     @Override
     public void createOrder(OrderDAO orderDAO) {
-        com.dlj4.tech.queue.entity.Service fetchedService = serviceService.getServiceById(orderDAO.getServiceId());
+        ServiceEntity fetchedService = serviceService.getServiceById(orderDAO.getServiceId());
         Long currentMaxNumber = orderRepository.findMaxCurrentNumberByServiceId(orderDAO.getServiceId());
         Long newCurrenNumber= currentMaxNumber==0?fetchedService.getStart():(currentMaxNumber+1);
         Window window = windowService.getWindowByID(orderDAO.getWindowId());

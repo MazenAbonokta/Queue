@@ -1,7 +1,7 @@
 package com.dlj4.tech.queue.service;
 
 
-import com.dlj4.tech.queue.dao.response.CategoryResponse;
+
 import com.dlj4.tech.queue.entity.Category;
 
 import java.util.List;

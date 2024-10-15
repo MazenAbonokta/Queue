@@ -9,9 +9,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class ServiceDAO {
+public class ServiceRequest {
     private String  code;
     private int start;
     private  int end;
+    private String name;
     private  Long categoryId;
 }

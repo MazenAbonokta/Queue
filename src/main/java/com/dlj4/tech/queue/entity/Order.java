@@ -30,5 +30,5 @@ public class Order {
     Window window;
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "service_id")
-    Service service;
+    ServiceEntity service;
 }

@@ -19,7 +19,7 @@ public class Window {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     String ipAddress;
-    Long windowNumber;
+    String windowNumber;
     @OneToMany(mappedBy = "window", cascade = CascadeType.ALL, orphanRemoval = true)
     List<Order> orders;
     @OneToMany(mappedBy = "window", cascade = CascadeType.ALL, orphanRemoval = true)

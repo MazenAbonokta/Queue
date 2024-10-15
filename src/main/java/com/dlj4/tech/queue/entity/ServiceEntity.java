@@ -14,13 +14,15 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Table(name = "SERVICE")
-public class Service {
+public class ServiceEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String  code;
     private int start;
     private  int end;
+
+    private  String name;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "category_id")

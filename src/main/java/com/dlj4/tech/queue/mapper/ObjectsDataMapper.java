@@ -1,9 +1,11 @@
 package com.dlj4.tech.queue.mapper;
 
-import com.dlj4.tech.queue.dao.request.ServiceDAO;
+import com.dlj4.tech.queue.dao.request.ServiceRequest;
 import com.dlj4.tech.queue.dao.request.UserRequest;
-import com.dlj4.tech.queue.dao.request.WindowDAO;
+import com.dlj4.tech.queue.dao.request.WindowRequest;
+import com.dlj4.tech.queue.dao.response.ServiceResponse;
 import com.dlj4.tech.queue.dao.response.UserResponse;
+import com.dlj4.tech.queue.dao.response.WindowResponse;
 import com.dlj4.tech.queue.entity.*;
 import com.dlj4.tech.queue.enums.OrderStatus;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,33 +13,36 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.util.stream.Collectors;
+
 @Component
 public class ObjectsDataMapper {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
-    public Service serviceDTOToServiceEntity(ServiceDAO serviceDAO, Category category){
-        return Service.builder()
-                .start(serviceDAO.getStart())
-                .end(serviceDAO.getEnd())
+    public ServiceEntity serviceDTOToServiceEntity(ServiceRequest serviceRequest, Category category){
+        return ServiceEntity.builder()
+                .start(serviceRequest.getStart())
+                .end(serviceRequest.getEnd())
                 .category(category)
-                .code(serviceDAO.getCode())
+                .code(serviceRequest.getCode())
+                .name(serviceRequest.getName())
 
                 .build();
 
     }
-    public Window windowDTOToWindowEntity(WindowDAO windowDAO){
+    public Window windowDTOToWindowEntity(WindowRequest windowRequest){
         return Window.builder()
-                .windowNumber(windowDAO.getWindowNumber())
-                .ipAddress(windowDAO.getIpAddress())
+                .windowNumber(windowRequest.getWindowNumber())
+                .ipAddress(windowRequest.getIpAddress())
                 .build();
     }
-    public WindowRole createWindowEntity(Window window,Service service){
+    public WindowRole createWindowEntity(Window window,ServiceEntity service){
         return WindowRole.builder()
                 .window(window)
                 .service(service)
                 .build();
     }
-    public Order createOrderEntity(Window window,Service service,Long CurrentNumber){
+    public Order createOrderEntity(Window window,ServiceEntity service,Long CurrentNumber){
         return Order.builder()
 
                 .orderStatus(OrderStatus.PENDING)
@@ -77,5 +82,45 @@ public class ObjectsDataMapper {
         user.setPassword(bCryptPasswordEncoder.encode(userRequest.getPassword()));
         user.setStatus(userRequest.getStatus());
         return user;
+    }
+
+    public ServiceResponse ServiceToServiceResponse(ServiceEntity service){
+       return  ServiceResponse
+               .builder()
+               .categoryId(service.getCategory().getId())
+               .categoryName(service.getCategory().getName())
+               .code(service.getCode())
+               .end(service.getEnd())
+               .start(service.getStart())
+               .name(service.getName())
+               .build();
+
+    }
+    public ServiceEntity copyServiceRequestToServiceEntity(ServiceRequest serviceRequest,ServiceEntity serviceEntity,Category category){
+        serviceEntity.setCategory(category);
+        serviceEntity.setEnd(serviceRequest.getEnd());
+        serviceEntity.setCode(serviceRequest.getCode());
+        serviceEntity.setStart(serviceRequest.getStart());
+        serviceEntity.setName(serviceRequest.getName());
+
+        return serviceEntity;
+    }
+
+    public WindowResponse windowToWindowResponse(Window window)
+    {
+        return WindowResponse.builder()
+                .id(window.getId())
+                .windowNumber(window.getWindowNumber())
+                .ipAddress(window.getIpAddress())
+                .services(window.getWindowRoles().stream().map(
+                        windowRole -> ServiceToServiceResponse(windowRole.getService())
+                ).collect(Collectors.toList()))
+                .build();
+    }
+    public Window copyWindowRequestToWindow(WindowRequest request,Window window)
+    {
+        window.setWindowNumber(request.getWindowNumber());
+        window.setIpAddress(request.getIpAddress());
+        return  window;
     }
 }
