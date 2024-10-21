@@ -1,6 +1,8 @@
 package com.dlj4.tech.queue.controller;
 
 
+import com.dlj4.tech.queue.dao.request.CategoryRequest;
+import com.dlj4.tech.queue.dao.response.CategoryResponse;
 import com.dlj4.tech.queue.entity.Category;
 import com.dlj4.tech.queue.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,22 +13,23 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequestMapping("/category")
 public class CategoryController {
     @Autowired
     CategoryService categoryService;
-    @PostMapping("/addCategory")
-    public ResponseEntity<Category> AddCategory(@RequestBody String name)
+    @PostMapping("/add")
+    public ResponseEntity<CategoryResponse> AddCategory(@RequestBody CategoryRequest categoryRequest)
     {
-        Category category= categoryService.createCategory(name);
-        return new ResponseEntity<Category>(category,HttpStatus.CREATED);
+        CategoryResponse category= categoryService.createCategory(categoryRequest.getName());
+        return new ResponseEntity<CategoryResponse>(category,HttpStatus.CREATED);
     }
-    @GetMapping("/categories")
-    public ResponseEntity<List<Category>> getCategories()
+    @GetMapping("/list")
+    public ResponseEntity<List<CategoryResponse>> getCategories()
     {
-
-        return new ResponseEntity<List<Category>>(categoryService.getCategorylist(),HttpStatus.OK);
+List<CategoryResponse> categories=categoryService.getCategorylist();
+        return new ResponseEntity<List<CategoryResponse>>(categories,HttpStatus.OK);
     }
-    @DeleteMapping("/deleteCategory/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteCategory(@PathVariable Long id)
     {
         categoryService.deleteCategory(id);

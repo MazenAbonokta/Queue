@@ -11,19 +11,19 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("Service")
+@RequestMapping("service")
 public class ServiceController {
 
     @Autowired
     ServiceService serviceService;
     @PostMapping("/create")
     public ResponseEntity<ServiceResponse> createService(@RequestBody ServiceRequest request){
-
-        return new ResponseEntity<ServiceResponse>(serviceService.createService(request) , HttpStatus.CREATED);
+            ServiceResponse serviceResponse=serviceService.createService(request);
+        return new ResponseEntity<ServiceResponse>(serviceResponse , HttpStatus.CREATED);
     }
-    @PutMapping("/edit/{id}")
-    public ResponseEntity<String> updateService(@PathVariable("id") Long id ,@RequestBody ServiceRequest request){
-        serviceService.updateService(id,request);
+    @PutMapping("/edit/")
+    public ResponseEntity<String> updateService( @RequestBody ServiceRequest request){
+        serviceService.updateService(request.getId(),request);
         return new ResponseEntity<String>("The Service has been Updated" , HttpStatus.OK);
     }
 

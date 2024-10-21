@@ -32,25 +32,25 @@ public class AuthenticationController {
         return  new ResponseEntity<JwtAuthenticationResponse>(response, HttpStatus.OK);
     }
 
-    @PreAuthorize("ADMIN")
+
     @GetMapping("/users")
     public ResponseEntity<List<UserResponse>> users(){
 
         return  new ResponseEntity<List<UserResponse>>(userService.getUserResponseList(), HttpStatus.OK);
     }
-    @PreAuthorize("ADMIN")
-    @PostMapping("/users")
+
+    @PostMapping("/users/add")
     public ResponseEntity<UserResponse> AddUser(@RequestBody UserRequest request){
 
         return  new ResponseEntity<UserResponse>(authenticationService.signUp(request), HttpStatus.CREATED);
     }
-    @PreAuthorize("ADMIN")
+
     @PutMapping("/users/{id}")
     public ResponseEntity<String> updateUser(@PathVariable("id") Long id,@RequestBody UserRequest request){
         authenticationService.updateUser(request);
         return  new ResponseEntity<String>("User has been update", HttpStatus.OK);
     }
-    @PreAuthorize("ADMIN")
+
     @DeleteMapping("/users/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable("id") Long id){
         authenticationService.deleteUser(id);

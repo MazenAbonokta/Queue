@@ -6,14 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Builder
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-public class ServiceRequest {
-    private Long  id;
-    private String  code;
-    private int start;
-    private  int end;
-    private String name;
-    private  Long categoryId;
+public class CategoryRequest {
+    private  String name;
 }

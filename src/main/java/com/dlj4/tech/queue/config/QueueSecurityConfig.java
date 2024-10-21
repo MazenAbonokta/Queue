@@ -39,7 +39,7 @@ public class QueueSecurityConfig {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
                 .cors(c -> c.configurationSource(customCorsConfiguration))
                 .authorizeHttpRequests(request ->
-                        request.requestMatchers(  "/auth/**",
+                        request.requestMatchers(  "/auth/signin",
                                         "/v1/api/get-token",
                                         "/swagger-ui.html",
                                         "/swagger-ui/*",

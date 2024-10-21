@@ -3,6 +3,7 @@ package com.dlj4.tech.queue.mapper;
 import com.dlj4.tech.queue.dao.request.ServiceRequest;
 import com.dlj4.tech.queue.dao.request.UserRequest;
 import com.dlj4.tech.queue.dao.request.WindowRequest;
+import com.dlj4.tech.queue.dao.response.CategoryResponse;
 import com.dlj4.tech.queue.dao.response.ServiceResponse;
 import com.dlj4.tech.queue.dao.response.UserResponse;
 import com.dlj4.tech.queue.dao.response.WindowResponse;
@@ -93,6 +94,7 @@ public class ObjectsDataMapper {
                .end(service.getEnd())
                .start(service.getStart())
                .name(service.getName())
+               .id(service.getId())
                .build();
 
     }
@@ -122,5 +124,13 @@ public class ObjectsDataMapper {
         window.setWindowNumber(request.getWindowNumber());
         window.setIpAddress(request.getIpAddress());
         return  window;
+    }
+
+    public CategoryResponse categoryToCategoryResponse(Category category)
+    {
+        return CategoryResponse.builder()
+                .name(category.getName())
+                .id(category.getId())
+                .build();
     }
 }

@@ -21,5 +21,5 @@ public class Category {
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
 
-    List<Service> services;
+    List<ServiceEntity> services;
 }

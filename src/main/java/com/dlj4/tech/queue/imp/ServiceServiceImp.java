@@ -37,7 +37,7 @@ public class ServiceServiceImp implements ServiceService {
     @Override
     public ServiceEntity getServiceById(Long serviceID) {
         Optional<ServiceEntity> service = serviceRepository.findById(serviceID);
-        if (service.isPresent())
+        if (service.isEmpty())
         {
             throw  new ResourceNotFoundException("service ["+serviceID +"is not Exist");
         }
