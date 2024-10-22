@@ -73,6 +73,11 @@ public class ServiceServiceImp implements ServiceService {
         return  responses;
     }
 
+    @Override
+    public List<ServiceEntity> getServicesByIds(List<Long> Ids) {
+        return serviceRepository.findAllByIdIn(Ids);
+    }
+
 
     ServiceEntity getServiceEntity(ServiceRequest serviceRequest){
         Category category=categoryService.getCategoryById(serviceRequest.getCategoryId());

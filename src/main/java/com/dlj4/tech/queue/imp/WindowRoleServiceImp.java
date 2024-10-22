@@ -19,21 +19,25 @@ import java.util.stream.Collectors;
 public class WindowRoleServiceImp implements WindowRoleService {
     @Autowired
     WindowRoleRepository windowRoleRepository;
-    @Autowired
-    WindowService windowService;
+
     @Autowired
     ObjectsDataMapper objectsDataMapper;
     @Autowired
     ServiceService serviceService;
     @Override
-    public void AssignRolesToWindow(WindowRoleDAO windowRoleDAO) {
+    public List<WindowRole> AssignRolesToWindow(WindowRoleDAO windowRoleDAO) {
         List<WindowRole> windowRoles =new ArrayList<>();
-        Window window=windowService.getWindowByID(windowRoleDAO.getWindowId());
+
         windowRoles.addAll(windowRoleDAO.getServiceIds()
                 .stream()
                 .map(s->
-                        objectsDataMapper.createWindowEntity(window,serviceService.getServiceById(s)))
+                        objectsDataMapper.createWindowRoleEntity(windowRoleDAO.getWindow(),serviceService.getServiceById(s)))
                 .collect(Collectors.toList()));
-        windowRoleRepository.saveAll(windowRoles);
+       return windowRoleRepository.saveAll(windowRoles);
+    }
+
+    @Override
+    public void createNewRoles(List<WindowRole> windowRoles) {
+
     }
 }

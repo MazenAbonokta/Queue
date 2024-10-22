@@ -15,5 +15,6 @@ public interface ServiceService {
     public void updateService(Long id,ServiceRequest serviceRequest);
     public void deleteService(Long id );
     public List<ServiceResponse> getServices( );
+    public List<ServiceEntity> getServicesByIds(List<Long> Ids);
 
 }

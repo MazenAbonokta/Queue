@@ -3,6 +3,7 @@ package com.dlj4.tech.queue.mapper;
 import com.dlj4.tech.queue.dao.request.ServiceRequest;
 import com.dlj4.tech.queue.dao.request.UserRequest;
 import com.dlj4.tech.queue.dao.request.WindowRequest;
+import com.dlj4.tech.queue.dao.request.WindowRoleDAO;
 import com.dlj4.tech.queue.dao.response.CategoryResponse;
 import com.dlj4.tech.queue.dao.response.ServiceResponse;
 import com.dlj4.tech.queue.dao.response.UserResponse;
@@ -14,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -35,9 +38,10 @@ public class ObjectsDataMapper {
         return Window.builder()
                 .windowNumber(windowRequest.getWindowNumber())
                 .ipAddress(windowRequest.getIpAddress())
+
                 .build();
     }
-    public WindowRole createWindowEntity(Window window,ServiceEntity service){
+    public WindowRole createWindowRoleEntity(Window window, ServiceEntity service){
         return WindowRole.builder()
                 .window(window)
                 .service(service)
@@ -114,9 +118,10 @@ public class ObjectsDataMapper {
                 .id(window.getId())
                 .windowNumber(window.getWindowNumber())
                 .ipAddress(window.getIpAddress())
-                .services(window.getWindowRoles().stream().map(
-                        windowRole -> ServiceToServiceResponse(windowRole.getService())
-                ).collect(Collectors.toList()))
+                .services(window.getWindowRoles()==null?new ArrayList<>():
+                        window.getWindowRoles().stream().map(
+                                windowRole -> ServiceToServiceResponse(windowRole.getService())
+                        ).collect(Collectors.toList()))
                 .build();
     }
     public Window copyWindowRequestToWindow(WindowRequest request,Window window)
@@ -131,6 +136,13 @@ public class ObjectsDataMapper {
         return CategoryResponse.builder()
                 .name(category.getName())
                 .id(category.getId())
+                .build();
+    }
+    public WindowRoleDAO windowToWindowRoleDAO(Window window, List<Long> ServiceIds)
+    {
+        return WindowRoleDAO.builder()
+                .window(window)
+                .ServiceIds(ServiceIds)
                 .build();
     }
 }
