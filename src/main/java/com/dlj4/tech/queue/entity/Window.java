@@ -13,11 +13,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "WINDOW")
+@Table(name = "window_entity")
 public class Window {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     String ipAddress;
     String windowNumber;
     @OneToMany(mappedBy = "window", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -21,6 +21,7 @@ public class Order {
     private Long id;
     Long currentNumber;
     private ZonedDateTime updatedAt;
+    private ZonedDateTime createdAt;
     private ZonedDateTime callDate;
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;

@@ -18,7 +18,8 @@ target/
 *.iws
 *.iml
 *.ipr
-
+!**/src/main/resource/sound/
+!**/src/main/resource/upload/
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/

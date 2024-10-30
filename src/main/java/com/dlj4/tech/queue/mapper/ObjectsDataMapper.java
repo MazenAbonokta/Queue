@@ -1,20 +1,17 @@
 package com.dlj4.tech.queue.mapper;
 
-import com.dlj4.tech.queue.dao.request.ServiceRequest;
-import com.dlj4.tech.queue.dao.request.UserRequest;
-import com.dlj4.tech.queue.dao.request.WindowRequest;
-import com.dlj4.tech.queue.dao.request.WindowRoleDAO;
-import com.dlj4.tech.queue.dao.response.CategoryResponse;
-import com.dlj4.tech.queue.dao.response.ServiceResponse;
-import com.dlj4.tech.queue.dao.response.UserResponse;
-import com.dlj4.tech.queue.dao.response.WindowResponse;
+import com.dlj4.tech.queue.dao.request.*;
+import com.dlj4.tech.queue.dao.response.*;
 import com.dlj4.tech.queue.entity.*;
 import com.dlj4.tech.queue.enums.OrderStatus;
+import com.dlj4.tech.queue.enums.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,7 +46,7 @@ public class ObjectsDataMapper {
     }
     public Order createOrderEntity(Window window,ServiceEntity service,Long CurrentNumber){
         return Order.builder()
-
+                .createdAt(ZonedDateTime.now(ZoneId.of("UTC")))
                 .orderStatus(OrderStatus.PENDING)
                 .currentNumber(CurrentNumber)
                 .service(service)
@@ -57,15 +54,18 @@ public class ObjectsDataMapper {
                 .build();
     }
 
-    public User userDTOToUser(UserRequest userRequest){
+    public User userDTOToUser(UserRequest userRequest,Window window ){
         return User.builder()
 
                 .username(userRequest.getUsername())
                 .name(userRequest.getName())
                 .email(userRequest.getEmail())
                 .phone(userRequest.getPhone())
+                .status(userRequest.getStatus())
+                .address(userRequest.getAddress())
+                .window(window)
                 .password(bCryptPasswordEncoder.encode(userRequest.getPassword()) )
-                .role(userRequest.getRole())
+                .role(Role.valueOf(userRequest.getRole()))
                 .build();
     }
     public UserResponse userToUserResponse(User user){
@@ -77,6 +77,10 @@ public class ObjectsDataMapper {
                 .phone(user.getPhone())
                 .address(user.getAddress())
                 .id(user.getId())
+                .windowId(user.getWindow().getId().toString())
+                .role(user.getRole().toString())
+                .status(user.getStatus())
+
                 .build();
     }
     public User copyUserRequestToUser(User user,UserRequest userRequest){
@@ -145,4 +149,29 @@ public class ObjectsDataMapper {
                 .ServiceIds(ServiceIds)
                 .build();
     }
+
+    public  ConfigScreen configScreenRequestToConfigScreen(ConfigRequest configRequest,String path,String hashedName)
+    {
+        return ConfigScreen.builder()
+                .configType(configRequest.getConfigType())
+                .path( path)
+                .content(configRequest.getEditor())
+                .fileExtension(configRequest.getFileExt())
+                .originalName(configRequest.getName())
+                .name(hashedName)
+                .build();
+    }
+    public ConfigResponse configScreenToConfigScreenResponse(ConfigScreen configScreen)
+    {
+        return ConfigResponse.builder()
+                .configType(configScreen.getConfigType())
+                .img(configScreen.getName())
+                .content(configScreen.getContent())
+                .fileExt(configScreen.getFileExtension())
+                .fullPath(configScreen.getPath())
+                .id(configScreen.getId().toString())
+
+                .build();
+    }
+
 }

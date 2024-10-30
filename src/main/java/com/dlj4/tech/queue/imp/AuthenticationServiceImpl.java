@@ -3,6 +3,7 @@ import com.dlj4.tech.queue.dao.request.UserRequest;
 import com.dlj4.tech.queue.dao.response.UserResponse;
 import com.dlj4.tech.queue.entity.Token;
 import com.dlj4.tech.queue.entity.User;
+import com.dlj4.tech.queue.entity.Window;
 import com.dlj4.tech.queue.exception.RefreshTokenNotFoundException;
 import com.dlj4.tech.queue.exception.ResourceAlreadyExistException;
 import com.dlj4.tech.queue.exception.ResourceNotFoundException;
@@ -14,6 +15,7 @@ import com.dlj4.tech.queue.dao.request.SigningRequest;
 import com.dlj4.tech.queue.dao.response.JwtAuthenticationResponse;
 import com.dlj4.tech.queue.service.AuthenticationService;
 import com.dlj4.tech.queue.service.JwtService;
+import com.dlj4.tech.queue.service.WindowService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,7 +41,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     ObjectsDataMapper objectsDataMapper;
     @Autowired
     private  AuthenticationManager authenticationManager;
-
+    @Autowired
+    WindowService  windowService;
     @Value("${token.access.token.expiration}")
     private long accessTokenExpiration;
 
@@ -86,8 +89,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public UserResponse signUp(UserRequest userRequest) {
 
+        Window window= null;
+        window =userRequest.getWindowId()==""?null:windowService.getWindowByID(Long.parseLong(userRequest.getWindowId()));
 
-        User user = objectsDataMapper.userDTOToUser(userRequest);
+        User user = objectsDataMapper.userDTOToUser(userRequest,window);
         Optional<User> checkedUser=userRepository.findByUsername(userRequest.getUsername());
         if(checkedUser.isPresent())
         {

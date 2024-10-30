@@ -1,6 +1,16 @@
 spring:
+  web:
+    resources:
+      static-locations: file:uploads/
   application:
-    name: cards
+    name: QMS
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    connection-timeout: 10s
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -26,3 +36,6 @@ token:
   access:
     token:
       expiration: 2592000000 # Set the expiration time for the access token in milliseconds (e.g., 1 hour)
+
+queue:
+  name: ticket-queue

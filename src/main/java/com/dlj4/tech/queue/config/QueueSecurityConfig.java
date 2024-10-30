@@ -40,6 +40,7 @@ public class QueueSecurityConfig {
                 .cors(c -> c.configurationSource(customCorsConfiguration))
                 .authorizeHttpRequests(request ->
                         request.requestMatchers(  "/auth/signin",
+                                        "/order/CreateOrder/**",
                                         "/v1/api/get-token",
                                         "/swagger-ui.html",
                                         "/swagger-ui/*",
