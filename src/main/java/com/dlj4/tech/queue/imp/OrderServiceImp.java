@@ -2,15 +2,15 @@ package com.dlj4.tech.queue.imp;
 
 import com.dlj4.tech.queue.dao.request.OrderDAO;
 import com.dlj4.tech.queue.dao.response.OrderResponse;
+import com.dlj4.tech.queue.dao.response.UserOrders;
 import com.dlj4.tech.queue.dto.OrderMessageDto;
-import com.dlj4.tech.queue.entity.Order;
-import com.dlj4.tech.queue.entity.ServiceEntity;
-import com.dlj4.tech.queue.entity.User;
-import com.dlj4.tech.queue.entity.Window;
+import com.dlj4.tech.queue.entity.*;
 import com.dlj4.tech.queue.enums.OrderStatus;
 import com.dlj4.tech.queue.exception.ResourceNotFoundException;
 import com.dlj4.tech.queue.mapper.ObjectsDataMapper;
+import com.dlj4.tech.queue.repository.OrderActionsRepository;
 import com.dlj4.tech.queue.repository.OrderRepository;
+import com.dlj4.tech.queue.repository.UserRepository;
 import com.dlj4.tech.queue.service.OrderService;
 import com.dlj4.tech.queue.service.ServiceService;
 import com.dlj4.tech.queue.service.TemplatePrintService;
@@ -21,19 +21,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.sound.sampled.*;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,11 +42,15 @@ public class OrderServiceImp implements OrderService {
     @Autowired
     WindowService windowService;
     @Autowired
+    UserRepository userRepository;
+    @Autowired
     TemplatePrintService printService;
     @Autowired
     ObjectsDataMapper objectsDataMapper;
     @Autowired
     RabbitTemplate rabbitTemplate;
+@Autowired
+OrderActionsRepository orderActionsRepository;
     @Value("${queue.name}")
     private String queueName;
    private   Clip clip;
@@ -67,12 +67,9 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
-    public void callNumber(Long Number,Long ScreenNumber) {
-
+    public void callNumber(Long Number,String ScreenNumber) {
             // Load the audio file
-
-
-            List<String> soundFiles = Arrays.asList("card.wav","number_" + Number+".wav",  "window.wav", "number_"+ ScreenNumber+".wav");
+        List<String> soundFiles = Arrays.asList("card_2.wav","number_" + Number+".wav",  "window.wav", "number_"+ ScreenNumber+".wav");
 
             for (String fileName : soundFiles) {
                 playSound(fileName);
@@ -84,32 +81,40 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
-    public void SendNumberToQueue(Long Number, Long ScreenNumber) {
+    public void SendNumberToQueue(Long Number, String ScreenNumber) {
         log.info("Send Ticket Number To The {} Queue For Calling",Number);
 
         var orderMessageDTo=new OrderMessageDto(Number,ScreenNumber);
         rabbitTemplate.convertAndSend(queueName, orderMessageDTo);
-        log.info("Is the Communication request successfully triggered ? : {}");
+        log.info("Is the Communication request successfully triggered ?");
     }
 
     @Override
-    public Order fetchNextOrder(OrderDAO orderDAO) {
+    public OrderResponse fetchNextOrder(OrderDAO orderDAO) {
 
-        Order CurrenOrder=getOrderById(orderDAO.getOrderId());
-        updateOrderStatus(CurrenOrder,orderDAO.getOrderStatus());
+        try {
+            updateCurrentOrder(orderDAO);
+        }
+        catch (Exception e) {
+            log.info(e.getMessage());
+        }
+User user =getCurrentUser();
         Order nextOrder= orderRepository.
-                findOrderByOrderStatusAndService_IdOrderByIdDesc(orderDAO.getOrderStatus(),orderDAO.getServiceId());
-        Window window = windowService.getWindowByID(orderDAO.getWindowId());
+                findFirstByOrderStatusAndServiceId(OrderStatus.PENDING,orderDAO.getServiceId());
+        Window window = windowService.getWindowByID(user.getWindow().getId());
         nextOrder.setOrderStatus(OrderStatus.BOOKED);
         nextOrder.setCallDate(ZonedDateTime.now(ZoneId.of("UTC")));
         nextOrder.setWindow(window);
+        nextOrder.setUser(user);
         orderRepository.save(nextOrder);
+        createOrderActions(nextOrder,OrderStatus.BOOKED);
 
 
-       SendNumberToQueue(nextOrder.getCurrentNumber(),orderDAO.getWindowId());
+       SendNumberToQueue(nextOrder.getCurrentNumber(),user.getWindow().getWindowNumber());
 
+        OrderResponse orderResponse= objectsDataMapper.orderToOrderResponse(nextOrder);
 
-        return  nextOrder;
+        return  orderResponse;
 
     }
 
@@ -118,9 +123,23 @@ public class OrderServiceImp implements OrderService {
 
 
         order.setOrderStatus(orderStatus);
+        order.setUser(getCurrentUser());
+
         orderRepository.save(order);
+        createOrderActions(order,orderStatus);
     }
 
+    private void updateCurrentOrder(OrderDAO orderDAO) {
+        if(orderDAO.getOrderId()!=0)
+        {
+            Order CurrenOrder= getOrderById(orderDAO.getOrderId());
+            if(CurrenOrder!=null){
+                updateOrderStatus(CurrenOrder,orderDAO.getOrderStatus());
+            }
+        }
+
+
+    }
     @Override
     public Order getOrderById(Long OrderId) {
         Order order= orderRepository.findById(OrderId)
@@ -129,12 +148,46 @@ public class OrderServiceImp implements OrderService {
     }
 
     @Override
-    public List<OrderResponse> getOrdersByUser(User user) {
-
-        Set<Long> ServiceIds= user.getWindow().getWindowRoles().stream().map(x->x.getService().getId()
+    public List<UserOrders> getOrdersByUserId(Long userId) {
+        User user= userRepository.findById(userId).get();
+        List<ServiceEntity> serviceEntities=  user.getWindow().getWindowRoles().stream().map(x->x.getService()
+        ).collect(Collectors.toList());
+        Set<Long> ServiceIds= serviceEntities.stream().map(x->x.getId()
         ).collect(Collectors.toSet());
-        List<Order> orders = orderRepository.findByServiceIsIn(ServiceIds);
-        return List.of();
+        List<Order> orders = orderRepository.findByServiceIsInAndUserId(ServiceIds,userId);
+        List<UserOrders> userOrders = new ArrayList<>();
+        List<OrderResponse> orderResponses = orders.stream().map(orderObj-> objectsDataMapper.orderToOrderResponse(orderObj)).collect(Collectors.toList());
+        Map<Long, OrderResponse> orderResponseMap = orderResponses.stream()
+                .collect(Collectors.toMap(OrderResponse::getServiceId, orderResponse -> orderResponse));
+
+        for (ServiceEntity service : serviceEntities)
+        {
+            OrderResponse orderResponse= orderResponseMap.get(service.getId());
+            userOrders.add(UserOrders.builder()
+                            .serviceResponse(objectsDataMapper.ServiceToServiceResponse(service))
+                            .currentOrder(orderResponse)
+
+                    .build());
+        }
+        return userOrders;
+    }
+
+    @Override
+    public void reCallTicket(OrderDAO orderDAO) {
+        Order order= getOrderById(orderDAO.getOrderId());
+        createOrderActions(order,OrderStatus.RECALL);
+        SendNumberToQueue(order.getCurrentNumber(),order.getUser().getWindow().getWindowNumber());
+    }
+
+    @Override
+    public OrderResponse getLastCalledOrderByUserId(Long userId) {
+        Optional<Order> order=orderRepository.findTopByUserIdOrderByCallDateDesc(userId);
+        if(order.isPresent()){
+
+            return objectsDataMapper.orderToOrderResponse(order.get());
+        }
+
+        return null;
     }
 
     public void playSound(String fileName) {
@@ -160,7 +213,7 @@ public class OrderServiceImp implements OrderService {
             Thread.sleep(duration);
 
             System.out.println("End duration{"+duration+"} "+fileName);
-           // clip.close();
+            // clip.close();
             System.out.println("Close  duration{"+duration+"} "+fileName);
             // Close the clip after playback completes
 
@@ -183,5 +236,24 @@ public class OrderServiceImp implements OrderService {
             e.printStackTrace();
         }
         return 0;
+    }
+    private User getCurrentUser(){
+        User userSec =  (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user= userRepository.findById(userSec.getId()).get();
+        return user;
+    }
+
+    private void createOrderActions(Order order,OrderStatus orderStatus) {
+        OrderAction  orderAction=OrderAction.builder()
+                .createdAt(ZonedDateTime.now(ZoneId.of("UTC")))
+                .order(order)
+                .orderStatus(orderStatus.toString())
+                .build();
+
+       try {
+           orderActionsRepository.save(orderAction);
+       } catch (Exception e) {
+           log.error("createOrderActions error:{}",e.getMessage());
+       }
     }
 }

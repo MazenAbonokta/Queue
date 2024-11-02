@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 @Data
 public class OrderDAO {
 
-    Long WindowId;
-    Long OrderId;
-    Long ServiceId;
+
+        Long orderId;
+    Long serviceId;
     OrderStatus orderStatus;
 }

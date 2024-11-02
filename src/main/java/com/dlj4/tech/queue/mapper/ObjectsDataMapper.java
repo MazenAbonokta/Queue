@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -103,6 +104,7 @@ public class ObjectsDataMapper {
                .start(service.getStart())
                .name(service.getName())
                .id(service.getId())
+               .pendingOrdersCount(service.getOrders().stream().map(x->x.getCallDate() ==null).count())
                .build();
 
     }
@@ -174,4 +176,15 @@ public class ObjectsDataMapper {
                 .build();
     }
 
+    public OrderResponse orderToOrderResponse(Order order)
+    {
+        return OrderResponse.builder()
+                .orderId(order.getId())
+                .serviceId(order.getService().getId())
+                .currentNumber(order.getCurrentNumber())
+                .callDate(order.getCallDate()==null?"": order.getCallDate() .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .windowNumber(order.getWindow()==null?0:order.getWindow().getId())
+                .serviceCode(order.getWindow()==null?"-":order.getService().getCode())
+                .build();
+    }
 }

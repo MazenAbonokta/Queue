@@ -61,10 +61,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             tokenRepository.saveAll(activeTokens);
         }
         var jwt = jwtService.generateToken(user);
+
         var refreshToken = jwtService.generateRefreshToken(user);
         var expiresAt = new Date(System.currentTimeMillis() + accessTokenExpiration);
         tokenRepository.save(new Token(jwt, refreshToken, expiresAt, user, true));
-        return JwtAuthenticationResponse.builder().token(jwt).refreshToken(refreshToken).expiresAt(expiresAt).status("success").build();
+        return JwtAuthenticationResponse.builder().token(jwt).refreshToken(refreshToken).expiresAt(expiresAt).status("success")
+                .WindowId(user.getWindow().getId())
+                .WindowNumber(user.getWindow().getWindowNumber())
+                .build();
     }
 
     @Override
@@ -78,7 +82,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             token.setIsActive(false);
             tokenRepository.save(token);
             tokenRepository.save(new Token(newAccessToken, newRefreshToken, expiresAt, user, true));
-            return new JwtAuthenticationResponse(newAccessToken, newRefreshToken, expiresAt,"success");
+            return new JwtAuthenticationResponse(newAccessToken, newRefreshToken, expiresAt,"success",user.getWindow().getId(),user.getWindow().getWindowNumber());
 
         } else {
             tokenRepository.delete(token);

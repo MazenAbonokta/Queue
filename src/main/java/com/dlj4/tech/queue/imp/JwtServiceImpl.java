@@ -1,6 +1,7 @@
 package com.dlj4.tech.queue.imp;
 
 import com.dlj4.tech.queue.entity.Token;
+import com.dlj4.tech.queue.entity.User;
 import com.dlj4.tech.queue.exception.TokenNotFoundException;
 import com.dlj4.tech.queue.repository.TokenRepository;
 import com.dlj4.tech.queue.service.JwtService;
@@ -46,12 +47,13 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails, accessTokenExpiration);
+
+        return generateToken(getClaims(userDetails), userDetails, accessTokenExpiration);
     }
 
     @Override
     public String generateRefreshToken(UserDetails userDetails) {
-        return "REFRESH_" + generateToken(new HashMap<>(), userDetails, refreshTokenExpiration, jwtRefreshSigningKey);
+        return "REFRESH_" + generateToken(getClaims(userDetails), userDetails, refreshTokenExpiration, jwtRefreshSigningKey);
     }
 
     @Override
@@ -93,5 +95,15 @@ public class JwtServiceImpl implements JwtService {
     private Key getSigningKey(String key) {
         byte[] keyBytes = Decoders.BASE64.decode(key);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    private  Map<String,Object> getClaims(UserDetails userDetails) {
+        User user = (User) userDetails;
+        Map<String, Object> claims = new HashMap<>();
+        if (user.getWindow() != null) {
+            claims.put("windowId", user.getWindow().getId());           // Add window ID
+            claims.put("windowNumber", user.getWindow().getWindowNumber());   // Add window number
+        }
+        return claims;
     }
 }

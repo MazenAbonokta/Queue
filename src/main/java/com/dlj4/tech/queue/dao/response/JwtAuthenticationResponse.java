@@ -16,4 +16,6 @@ public class JwtAuthenticationResponse {
     private String refreshToken;
     private Date expiresAt;
     private  String status;
+    private Long WindowId;
+    private String WindowNumber;
 }
