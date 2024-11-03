@@ -20,6 +20,7 @@ public interface OrderRepository extends JpaRepository<Order,Long> {
     @Query(value = "SELECT * FROM orders o WHERE o.service_id IN :serviceIds " +
             "AND o.user_id = :userId " +
             "AND o.call_date IS NOT NULL " +
+
             "AND o.current_number = (SELECT MAX(o2.current_number) FROM orders o2 WHERE o2.service_id = o.service_id AND o2.user_id = :userId)",
             nativeQuery = true)
     List<Order> findByServiceIsInAndUserId(@Param("serviceIds") Set<Long> serviceIds, @Param("userId") Long userId);
@@ -27,7 +28,8 @@ public interface OrderRepository extends JpaRepository<Order,Long> {
 
 
     Optional<Order> findTopByUserIdOrderByCallDateDesc(Long userId);
-
+    @Query("SELECT COUNT(u) FROM Order u WHERE u.orderStatus=?1 and u.service.id=?2")
+long countByOrderStatusAAndServiceId(OrderStatus orderStatus,Long Service_Id);
 
 
 }

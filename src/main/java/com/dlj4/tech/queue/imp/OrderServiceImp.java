@@ -2,8 +2,10 @@ package com.dlj4.tech.queue.imp;
 
 import com.dlj4.tech.queue.dao.request.OrderDAO;
 import com.dlj4.tech.queue.dao.response.OrderResponse;
+import com.dlj4.tech.queue.dao.response.ServiceResponse;
 import com.dlj4.tech.queue.dao.response.UserOrders;
 import com.dlj4.tech.queue.dto.OrderMessageDto;
+import com.dlj4.tech.queue.dto.TicketsMessage;
 import com.dlj4.tech.queue.entity.*;
 import com.dlj4.tech.queue.enums.OrderStatus;
 import com.dlj4.tech.queue.exception.ResourceNotFoundException;
@@ -51,6 +53,8 @@ public class OrderServiceImp implements OrderService {
     RabbitTemplate rabbitTemplate;
 @Autowired
 OrderActionsRepository orderActionsRepository;
+@Autowired
+NotificationService notificationService;
     @Value("${queue.name}")
     private String queueName;
    private   Clip clip;
@@ -63,6 +67,18 @@ OrderActionsRepository orderActionsRepository;
         Order order= objectsDataMapper.createOrderEntity(null,fetchedService,newCurrenNumber);
         order=  orderRepository.save(order);
         String Code =order.getService().getCode()+order.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+
+        try {
+            notificationService.updateServiceTicketsCount(
+                    TicketsMessage.builder()
+                            .serviceId(serviceId)
+                            .ticketCount(orderRepository.countByOrderStatusAAndServiceId(OrderStatus.PENDING,serviceId))
+                            .build()
+            );
+            log.info("Send to WebSocket");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         printService.printTicket("Ticket",Code,order.getService().getName(),"44",order.getCurrentNumber().toString(),"Test" );
     }
 
@@ -90,7 +106,7 @@ OrderActionsRepository orderActionsRepository;
     }
 
     @Override
-    public OrderResponse fetchNextOrder(OrderDAO orderDAO) {
+    public UserOrders fetchNextOrder(OrderDAO orderDAO) {
 
         try {
             updateCurrentOrder(orderDAO);
@@ -114,7 +130,24 @@ User user =getCurrentUser();
 
         OrderResponse orderResponse= objectsDataMapper.orderToOrderResponse(nextOrder);
 
-        return  orderResponse;
+        ServiceEntity service = serviceService.getServiceById(orderDAO.getServiceId());
+        ServiceResponse serviceResponse=objectsDataMapper.ServiceToServiceResponse(service);
+
+        try {
+            notificationService.updateServiceTicketsCount(
+                    TicketsMessage.builder()
+                            .serviceId(orderDAO.getServiceId())
+                            .ticketCount(orderRepository.countByOrderStatusAAndServiceId(OrderStatus.PENDING,orderDAO.getServiceId()))
+                            .build()
+            );
+            log.info("Send to WebSocket");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return  UserOrders.builder()
+                .currentOrder(orderResponse)
+                .serviceResponse(serviceResponse)
+                .build();
 
     }
 
@@ -188,6 +221,12 @@ User user =getCurrentUser();
         }
 
         return null;
+    }
+
+    @Override
+    public Long getCountByServiceIdAndStatus(Long serviceId, OrderStatus orderStatus) {
+        return  orderRepository.countByOrderStatusAAndServiceId(orderStatus,serviceId);
+
     }
 
     public void playSound(String fileName) {

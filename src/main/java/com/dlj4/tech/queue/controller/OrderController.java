@@ -21,11 +21,11 @@ public class OrderController {
     OrderService orderService;
 
     @PutMapping("/CallNextNumber")
-    public ResponseEntity<OrderResponse> CallNextNumber(@RequestBody OrderDAO orderDAO){
+    public ResponseEntity<UserOrders> CallNextNumber(@RequestBody OrderDAO orderDAO){
 
-        OrderResponse order = orderService.fetchNextOrder(orderDAO);
+        UserOrders order = orderService.fetchNextOrder(orderDAO);
 
-        return new ResponseEntity<OrderResponse>(order, HttpStatus.OK);
+        return new ResponseEntity<UserOrders>(order, HttpStatus.OK);
     }
     @PutMapping("/ReCallTicket")
     public void orderResponseEntity(@RequestBody OrderDAO orderDAO){

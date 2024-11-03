@@ -11,6 +11,11 @@ import java.util.List;
 public class CustomCorsConfiguration implements CorsConfigurationSource {
     @Override
     public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+
+        if (request.getRequestURI().startsWith("/ws")) {
+            // WebSocket request, do not apply CORS
+            return null;
+        }
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:4200", "http://127.0.0.1:4200"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));

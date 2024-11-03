@@ -104,7 +104,7 @@ public class ObjectsDataMapper {
                .start(service.getStart())
                .name(service.getName())
                .id(service.getId())
-               .pendingOrdersCount(service.getOrders().stream().map(x->x.getCallDate() ==null).count())
+               .pendingOrdersCount(service.getOrders().stream().filter(x->x.getOrderStatus() ==OrderStatus.PENDING).count())
                .build();
 
     }
