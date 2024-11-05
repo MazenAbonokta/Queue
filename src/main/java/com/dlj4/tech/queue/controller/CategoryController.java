@@ -23,6 +23,12 @@ public class CategoryController {
         CategoryResponse category= categoryService.createCategory(categoryRequest.getName());
         return new ResponseEntity<CategoryResponse>(category,HttpStatus.CREATED);
     }
+    @PutMapping("/update/{id}")
+    public void updateCategory(@RequestBody CategoryRequest categoryRequest)
+    {
+        categoryService.updatedCategory(categoryRequest.getId(), categoryRequest.getName());
+
+    }
     @GetMapping("/list")
     public ResponseEntity<List<CategoryResponse>> getCategories()
     {
@@ -30,9 +36,9 @@ List<CategoryResponse> categories=categoryService.getCategorylist();
         return new ResponseEntity<List<CategoryResponse>>(categories,HttpStatus.OK);
     }
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteCategory(@PathVariable Long id)
+    public void deleteCategory(@PathVariable Long id)
     {
         categoryService.deleteCategory(id);
-        return new ResponseEntity<String>("Category has been deleted",HttpStatus.OK);
+
     }
 }

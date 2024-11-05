@@ -120,7 +120,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public void deleteUser(Long id) {
        User user= userRepository.findById(id).orElseThrow(
                ()->new ResourceNotFoundException("UserNotFound"));
-
-       userRepository.delete(user);
+user.setDeleted(true);
+       userRepository.save(user);
     }
 }

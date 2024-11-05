@@ -71,11 +71,11 @@ public class WindowServiceImp implements WindowService {
     }
 
     @Override
-    public void updateWindow(Long id, WindowRequest windowRequest) {
+    public WindowResponse updateWindow(Long id, WindowRequest windowRequest) {
         Window window= getWindowByID(id);
         window= objectsDataMapper.copyWindowRequestToWindow(windowRequest,window);
         windowRepository.save(window);
-
+        return objectsDataMapper.windowToWindowResponse(window);
 
     }
 

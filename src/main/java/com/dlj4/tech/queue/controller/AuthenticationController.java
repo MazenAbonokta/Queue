@@ -45,13 +45,13 @@ public class AuthenticationController {
         return  new ResponseEntity<UserResponse>(authenticationService.signUp(request), HttpStatus.CREATED);
     }
 
-    @PutMapping("/users/{id}")
+    @PutMapping("/users/update/{id}")
     public ResponseEntity<String> updateUser(@PathVariable("id") Long id,@RequestBody UserRequest request){
         authenticationService.updateUser(request);
         return  new ResponseEntity<String>("User has been update", HttpStatus.OK);
     }
 
-    @DeleteMapping("/users/{id}")
+    @DeleteMapping("/users/delete/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable("id") Long id){
         authenticationService.deleteUser(id);
         return  new ResponseEntity<String>("User has been deleted",HttpStatus.OK);

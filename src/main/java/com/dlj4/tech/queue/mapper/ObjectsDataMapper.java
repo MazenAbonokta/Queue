@@ -104,7 +104,7 @@ public class ObjectsDataMapper {
                .start(service.getStart())
                .name(service.getName())
                .id(service.getId())
-               .pendingOrdersCount(service.getOrders().stream().filter(x->x.getOrderStatus() ==OrderStatus.PENDING).count())
+               .pendingOrdersCount(service.getOrders() ==null?0:service.getOrders().stream().filter(x->x.getOrderStatus() ==OrderStatus.PENDING).count())
                .build();
 
     }
@@ -134,6 +134,7 @@ public class ObjectsDataMapper {
     {
         window.setWindowNumber(request.getWindowNumber());
         window.setIpAddress(request.getIpAddress());
+
         return  window;
     }
 

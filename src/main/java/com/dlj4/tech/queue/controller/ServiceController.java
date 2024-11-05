@@ -23,16 +23,16 @@ public class ServiceController {
          ServiceResponse serviceResponse=serviceService.createService(request);
         return new ResponseEntity<ServiceResponse>(serviceResponse , HttpStatus.CREATED);
     }
-    @PutMapping("/edit/")
-    public ResponseEntity<String> updateService( @RequestBody ServiceRequest request){
-        serviceService.updateService(request.getId(),request);
-        return new ResponseEntity<String>("The Service has been Updated" , HttpStatus.OK);
+    @PutMapping("/update/{id}")
+    public ResponseEntity<ServiceResponse>  updateService( @RequestBody ServiceRequest request){
+        ServiceResponse serviceResponse =  serviceService.updateService(request.getId(),request);
+        return new ResponseEntity<ServiceResponse>(serviceResponse , HttpStatus.CREATED);
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteService(@PathVariable("id") Long id ){
+    public  void deleteService(@PathVariable("id") Long id ){
         serviceService.deleteService(id);
-        return new ResponseEntity<String>("The Service has been deleted" , HttpStatus.OK);
+
     }
 
     @GetMapping("/list")

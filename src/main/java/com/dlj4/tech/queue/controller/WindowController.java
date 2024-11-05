@@ -22,25 +22,25 @@ public class WindowController {
     return new ResponseEntity<List<WindowResponse>>(windowService.getWindowsList(), HttpStatus.OK);
 }
     @PostMapping("/create")
-    public ResponseEntity<String> createWindow(@RequestBody WindowRequest windowRequest)
+    public ResponseEntity<WindowResponse> createWindow(@RequestBody WindowRequest windowRequest)
     {
-        windowService.createWindow(windowRequest);
+        WindowResponse windowResponse= windowService.createWindow(windowRequest);
 
-        return  new ResponseEntity<String>("the window has been created",HttpStatus.CREATED);
+        return  new ResponseEntity<WindowResponse>(windowResponse,HttpStatus.CREATED);
     }
 
     @PutMapping("/edit/{id}")
 
-    public ResponseEntity<String> updateWindow(@PathVariable("id") Long id, @RequestBody  WindowRequest windowRequest)
+    public ResponseEntity<WindowResponse>  updateWindow(@PathVariable("id") Long id, @RequestBody  WindowRequest windowRequest)
     {
-        windowService.updateWindow(id,windowRequest);
+        WindowResponse windowResponse=   windowService.updateWindow(id,windowRequest);
 
-        return  new ResponseEntity<String>("the window has been update",HttpStatus.OK);
+        return  new ResponseEntity<WindowResponse>(windowResponse,HttpStatus.CREATED);
     }
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteWindow(@PathVariable("id") Long id ){
+    public void deleteWindow(@PathVariable("id") Long id ){
         windowService.deleteWindow(id);
-        return new ResponseEntity<String>("The Window has been deleted" , HttpStatus.OK);
+
     }
 
 

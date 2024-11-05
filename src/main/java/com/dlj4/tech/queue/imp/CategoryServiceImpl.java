@@ -60,6 +60,13 @@ public class CategoryServiceImpl implements CategoryService {
         categoryRepository.delete(category);
     }
 
+    @Override
+    public void updatedCategory(Long id, String name) {
+       Category category =categoryRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Error Category"));
+        category.setName(name);
+        categoryRepository.save(category);
+    }
+
     private Category createNewCategory(String name) {
         Category newCategory = new Category();
 

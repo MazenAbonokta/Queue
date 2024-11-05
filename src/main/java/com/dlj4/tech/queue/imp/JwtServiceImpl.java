@@ -102,7 +102,9 @@ public class JwtServiceImpl implements JwtService {
         Map<String, Object> claims = new HashMap<>();
         if (user.getWindow() != null) {
             claims.put("windowId", user.getWindow().getId());           // Add window ID
-            claims.put("windowNumber", user.getWindow().getWindowNumber());   // Add window number
+            claims.put("windowNumber", user.getWindow().getWindowNumber());
+            claims.put("username", user.getUsername());           // Add window ID
+            claims.put("fullName", user.getName());  // Add window number
         }
         return claims;
     }

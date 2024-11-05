@@ -13,7 +13,7 @@ public interface WindowService {
     public void deleteWindow(Long windowID);
 
     public List<WindowResponse> getWindowsList();
-    public void updateWindow(Long id,WindowRequest windowRequest);
+    public WindowResponse updateWindow(Long id,WindowRequest windowRequest);
 
 
 }

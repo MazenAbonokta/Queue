@@ -12,7 +12,7 @@ public interface ServiceService {
     public ServiceResponse createService(ServiceRequest serviceRequest);
 
     public ServiceEntity getServiceById(Long serviceID);
-    public void updateService(Long id,ServiceRequest serviceRequest);
+    public ServiceResponse updateService(Long id,ServiceRequest serviceRequest);
     public void deleteService(Long id );
     public List<ServiceResponse> getServices( );
     public List<ServiceEntity> getServicesByIds(List<Long> Ids);

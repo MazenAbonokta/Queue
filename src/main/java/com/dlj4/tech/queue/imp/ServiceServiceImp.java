@@ -45,7 +45,7 @@ public class ServiceServiceImp implements ServiceService {
     }
 
     @Override
-    public void updateService(Long id, ServiceRequest serviceRequest) {
+    public ServiceResponse updateService(Long id, ServiceRequest serviceRequest) {
         ServiceEntity service = serviceRepository.findById(id).orElseThrow(
                 ()->new ResourceNotFoundException("The Service is not found")
 
@@ -53,7 +53,7 @@ public class ServiceServiceImp implements ServiceService {
         Category category= categoryService.getCategoryById(serviceRequest.getCategoryId());
         service= objectsDataMapper.copyServiceRequestToServiceEntity(serviceRequest,service,category);
         serviceRepository.save(service);
-
+        return  objectsDataMapper.ServiceToServiceResponse(service);
     }
 
     @Override
