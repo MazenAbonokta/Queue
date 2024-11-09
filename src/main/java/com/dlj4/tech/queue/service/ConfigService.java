@@ -6,5 +6,5 @@ import com.dlj4.tech.queue.dao.response.ConfigResponse;
 public interface ConfigService {
     public ConfigResponse createConfig(ConfigRequest configRequest);
     public ConfigResponse updateConfig(ConfigRequest configRequest);
-    public ConfigResponse getConfigByType(String configType);
+    public ConfigResponse getConfig();
 }

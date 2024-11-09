@@ -10,5 +10,4 @@ import java.util.Optional;
 @Repository
 public interface ConfigRepository extends JpaRepository<ConfigScreen ,Long> {
 
-    Optional<ConfigScreen> findByConfigType(String configType);
 }

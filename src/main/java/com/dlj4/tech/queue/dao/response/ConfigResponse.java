@@ -10,11 +10,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ConfigResponse {
-    private String name;
     private String id;
-    private String content;
-    private String fullPath;
-    private String fileExt;
-    private String configType;
-    private String img;
+    private String mainScreenName;
+    private String mainScreenFileExtension;
+    private String mainScreenOriginalName;
+    private String logoName;
+    byte[] logImg;
+    byte[] mainScreenImg;
+    private String logoFileExtension;
+    private String logoOriginalName;
+    private  String mainScreenMessage;
+    private  String ticketScreenMessage;
 }

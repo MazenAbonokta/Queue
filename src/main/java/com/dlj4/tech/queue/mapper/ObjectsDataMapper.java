@@ -2,14 +2,19 @@ package com.dlj4.tech.queue.mapper;
 
 import com.dlj4.tech.queue.dao.request.*;
 import com.dlj4.tech.queue.dao.response.*;
+import com.dlj4.tech.queue.dto.MainScreenTicket;
 import com.dlj4.tech.queue.entity.*;
-import com.dlj4.tech.queue.enums.OrderStatus;
-import com.dlj4.tech.queue.enums.Role;
+import com.dlj4.tech.queue.constants.OrderStatus;
+import com.dlj4.tech.queue.constants.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,6 +26,7 @@ import java.util.stream.Collectors;
 public class ObjectsDataMapper {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
+    String uploadDir = "src/main/resources/static/uploads/";
     public ServiceEntity serviceDTOToServiceEntity(ServiceRequest serviceRequest, Category category){
         return ServiceEntity.builder()
                 .start(serviceRequest.getStart())
@@ -153,27 +159,53 @@ public class ObjectsDataMapper {
                 .build();
     }
 
-    public  ConfigScreen configScreenRequestToConfigScreen(ConfigRequest configRequest,String path,String hashedName)
+    public  ConfigScreen configScreenRequestToConfigScreen(ConfigRequest configRequest ,String hashedName ,String hashedMainFilename)
     {
         return ConfigScreen.builder()
-                .configType(configRequest.getConfigType())
-                .path( path)
-                .content(configRequest.getEditor())
-                .fileExtension(configRequest.getFileExt())
-                .originalName(configRequest.getName())
-                .name(hashedName)
+                .mainScreenFileExtension(configRequest.getLogoFileExtension())
+
+                .mainScreenOriginalName(configRequest.getMainScreenOriginalName())
+                .mainScreenName(hashedMainFilename)
+                .logoName(hashedName)
+
+                .logoFileExtension(configRequest.getLogoFileExtension())
+                .logoOriginalName(configRequest.getLogoOriginalName())
+
                 .build();
     }
-    public ConfigResponse configScreenToConfigScreenResponse(ConfigScreen configScreen)
-    {
-        return ConfigResponse.builder()
-                .configType(configScreen.getConfigType())
-                .img(configScreen.getName())
-                .content(configScreen.getContent())
-                .fileExt(configScreen.getFileExtension())
-                .fullPath(configScreen.getPath())
-                .id(configScreen.getId().toString())
+    public ConfigResponse configScreenToConfigScreenResponse(ConfigScreen configScreen)  {
+        byte[] logImageContent = new byte[0];
+        byte[] mainScreenContect = new byte[0];
+        try {
+            Path filePath = Paths.get(uploadDir + configScreen.getLogoName());
+            logImageContent = Files.readAllBytes(filePath);
 
+            // You can dynamically set content type if needed
+
+        } catch (IOException e) {
+
+        }
+        try {
+
+            Path filePath = Paths.get(uploadDir + configScreen.getMainScreenName());
+            mainScreenContect = Files.readAllBytes(filePath);
+            // You can dynamically set content type if needed
+
+        } catch (IOException e) {
+System.out.println(e.getMessage());
+        }
+        return ConfigResponse.builder()
+                .mainScreenFileExtension(configScreen.getMainScreenFileExtension())
+                .mainScreenOriginalName(configScreen.getMainScreenOriginalName())
+                .mainScreenName(configScreen.getMainScreenName())
+                .logoName(configScreen.getLogoName())
+                .logoFileExtension(configScreen.getLogoFileExtension())
+                .logoOriginalName(configScreen.getLogoOriginalName())
+                .id(configScreen.getId().toString())
+                .logImg(logImageContent)
+                .mainScreenImg(mainScreenContect)
+                .ticketScreenMessage(configScreen.getTicketScreenMessage())
+                .mainScreenMessage(configScreen.getMainScreenMessage())
                 .build();
     }
 
@@ -187,5 +219,13 @@ public class ObjectsDataMapper {
                 .windowNumber(order.getWindow()==null?0:order.getWindow().getId())
                 .serviceCode(order.getWindow()==null?"-":order.getService().getCode())
                 .build();
+    }
+
+    public MainScreenTicket orderActionToMainScreenTicket(OrderAction orderAction)
+    {
+    return MainScreenTicket.builder()
+            .ticketNumber(orderAction.getOrder().getService().getCode() + '-' + orderAction.getOrder().getCurrentNumber())
+            .counter(orderAction.getOrder().getWindow().getWindowNumber())
+            .build();
     }
 }

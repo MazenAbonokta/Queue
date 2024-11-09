@@ -20,13 +20,13 @@ public class PrintController {
 
     @GetMapping("/generate-ticket")
     public void generateTicket(){
-        String filePath = "uploads/ticket.pdf";
+        String filePath = "static/uploads/ticket.pdf";
         printService.saveTicketAsPdf("Queue Ticket", "A123", "Customer Service", "15 minutes", "3", "Thank you for your patience.", filePath);
     }
     @GetMapping("/ReCallNumber/{currentNumber}/{windowNumber}")
     public void orderResponseEntity(@PathVariable("currentNumber") Long currentNumber, @PathVariable("windowNumber") Long windowNumber){
         User user =  (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        orderService.SendNumberToQueue(currentNumber,"2");
+     //   orderService.SendNumberToQueue(currentNumber,"2");
     }
 }

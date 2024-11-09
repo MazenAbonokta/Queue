@@ -3,6 +3,7 @@ package com.dlj4.tech.queue.controller;
 import com.dlj4.tech.queue.dao.request.OrderDAO;
 import com.dlj4.tech.queue.dao.response.OrderResponse;
 import com.dlj4.tech.queue.dao.response.UserOrders;
+import com.dlj4.tech.queue.dto.MainScreenTicket;
 import com.dlj4.tech.queue.entity.Order;
 import com.dlj4.tech.queue.entity.User;
 import com.dlj4.tech.queue.service.OrderService;
@@ -44,6 +45,14 @@ public class OrderController {
 
         return new ResponseEntity<List<UserOrders>>(
              orderService.getOrdersByUserId(user.getId()), HttpStatus.OK);
+
+    }
+    @GetMapping("/getLastTickets")
+    public ResponseEntity<List<MainScreenTicket>> getLastTickets(){
+
+
+
+        return new ResponseEntity<List<MainScreenTicket>>( orderService.getLastTickets(), HttpStatus.OK);
 
     }
 }

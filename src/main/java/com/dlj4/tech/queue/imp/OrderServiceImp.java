@@ -4,10 +4,11 @@ import com.dlj4.tech.queue.dao.request.OrderDAO;
 import com.dlj4.tech.queue.dao.response.OrderResponse;
 import com.dlj4.tech.queue.dao.response.ServiceResponse;
 import com.dlj4.tech.queue.dao.response.UserOrders;
+import com.dlj4.tech.queue.dto.MainScreenTicket;
 import com.dlj4.tech.queue.dto.OrderMessageDto;
 import com.dlj4.tech.queue.dto.TicketsMessage;
 import com.dlj4.tech.queue.entity.*;
-import com.dlj4.tech.queue.enums.OrderStatus;
+import com.dlj4.tech.queue.constants.OrderStatus;
 import com.dlj4.tech.queue.exception.ResourceNotFoundException;
 import com.dlj4.tech.queue.mapper.ObjectsDataMapper;
 import com.dlj4.tech.queue.repository.OrderActionsRepository;
@@ -17,6 +18,7 @@ import com.dlj4.tech.queue.service.OrderService;
 import com.dlj4.tech.queue.service.ServiceService;
 import com.dlj4.tech.queue.service.TemplatePrintService;
 import com.dlj4.tech.queue.service.WindowService;
+import javazoom.jl.player.Player;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +29,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.sound.sampled.*;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -83,10 +88,20 @@ NotificationService notificationService;
     }
 
     @Override
-    public void callNumber(Long Number,String ScreenNumber) {
+    public void callNumber(Long Number,String ScreenNumber,String Code) {
             // Load the audio file
-        List<String> soundFiles = Arrays.asList("card_2.wav","number_" + Number+".wav",  "window.wav", "number_"+ ScreenNumber+".wav");
-
+        List<String> soundFiles = Arrays.asList("card.mp3","number_" + Number+".mp3",  "window.mp3", "number_"+ ScreenNumber+".mp3");
+        try {
+            notificationService.sendNewTicketToMainScreen(
+                    MainScreenTicket.builder()
+                            .ticketNumber(Code+"-"+Number.toString())
+                            .counter(ScreenNumber)
+                            .build()
+            );
+            log.info("Send to WebSocket");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
             for (String fileName : soundFiles) {
                 playSound(fileName);
 
@@ -97,10 +112,10 @@ NotificationService notificationService;
     }
 
     @Override
-    public void SendNumberToQueue(Long Number, String ScreenNumber) {
+    public void SendNumberToQueue(Long Number, String ScreenNumber,String Code) {
         log.info("Send Ticket Number To The {} Queue For Calling",Number);
 
-        var orderMessageDTo=new OrderMessageDto(Number,ScreenNumber);
+        var orderMessageDTo=new OrderMessageDto(Number,ScreenNumber,Code);
         rabbitTemplate.convertAndSend(queueName, orderMessageDTo);
         log.info("Is the Communication request successfully triggered ?");
     }
@@ -126,7 +141,7 @@ User user =getCurrentUser();
         createOrderActions(nextOrder,OrderStatus.BOOKED);
 
 
-       SendNumberToQueue(nextOrder.getCurrentNumber(),user.getWindow().getWindowNumber());
+       SendNumberToQueue(nextOrder.getCurrentNumber(),user.getWindow().getWindowNumber(),nextOrder.getService().getCode());
 
         OrderResponse orderResponse= objectsDataMapper.orderToOrderResponse(nextOrder);
 
@@ -209,7 +224,7 @@ User user =getCurrentUser();
     public void reCallTicket(OrderDAO orderDAO) {
         Order order= getOrderById(orderDAO.getOrderId());
         createOrderActions(order,OrderStatus.RECALL);
-        SendNumberToQueue(order.getCurrentNumber(),order.getUser().getWindow().getWindowNumber());
+        SendNumberToQueue(order.getCurrentNumber(),order.getUser().getWindow().getWindowNumber(),order.getService().getCode());
     }
 
     @Override
@@ -229,38 +244,37 @@ User user =getCurrentUser();
 
     }
 
+    @Override
+    public List<MainScreenTicket> getLastTickets() {
+        ZonedDateTime startOfDay = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS);
+        ZonedDateTime endOfDay = startOfDay.plusDays(1).minusNanos(1);
+        List<OrderAction> orderActions= orderActionsRepository.findTop10DistinctByOrderAndStatusAndCreatedAtToday(
+                Arrays.asList("RECALL", "BOOKED"), startOfDay, endOfDay);
+
+        List<MainScreenTicket> mainScreenTickets =
+                orderActions.stream().map(orderAction -> objectsDataMapper.orderActionToMainScreenTicket(orderAction)).collect(Collectors.toList());
+        return mainScreenTickets;
+
+    }
+
     public void playSound(String fileName) {
-        try {
-            // Load the audio file from resources
-            ClassPathResource resource = new ClassPathResource("sound/" + fileName);
-          //  URL url= new URL("https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav");
-          //  InputStream inputStream = getClass().getClassLoader().getResourceAsStream(resource.getFile());
-            AudioInputStream audioStream = AudioSystem.getAudioInputStream(resource.getFile());
+        Player player;
+        // Load the audio file from resources
+        ClassPathResource resource = new ClassPathResource("sound/" + fileName);
+        //  URL url= new URL("https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav");
+        //  InputStream inputStream = getClass().getClassLoader().getResourceAsStream(resource.getFile());
+        //     AudioInputStream audioStream = AudioSystem.getAudioInputStream(resource.getFile());
+        try (InputStream inputStream = new FileInputStream(resource.getFile())) {
+            player = new Player(inputStream);
+            player.play();
 
-            // Obtain a clip to play the audio
-            clip = AudioSystem.getClip();
-
-            clip.open(audioStream);
-            // Start playing the sound
-            System.out.println("Start " + fileName);
-            long duration = clip.getMicrosecondLength() / 1000; // Convert to milliseconds
-            System.out.println("duration{"+duration+"} "+ fileName);
-
-
-            clip.start();
-
-            Thread.sleep(duration);
-
-            System.out.println("End duration{"+duration+"} "+fileName);
-            // clip.close();
-            System.out.println("Close  duration{"+duration+"} "+fileName);
-            // Close the clip after playback completes
-
-        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
+        // Obtain a clip to play the audio
+
+        // Close the clip after playback completes
+
     }
     private long getClipDuration(String fileName) {
         try {

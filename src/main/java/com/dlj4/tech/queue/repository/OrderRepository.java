@@ -1,7 +1,7 @@
 package com.dlj4.tech.queue.repository;
 
 import com.dlj4.tech.queue.entity.Order;
-import com.dlj4.tech.queue.enums.OrderStatus;
+import com.dlj4.tech.queue.constants.OrderStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

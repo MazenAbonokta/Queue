@@ -1,6 +1,5 @@
 package com.dlj4.tech.queue.entity;
 
-import com.dlj4.tech.queue.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -19,12 +19,14 @@ public class ConfigScreen {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
-    private String path;
-    private String configType;
-    private String fileExtension;
-    private String originalName;
-    private  String content;
+    private String mainScreenName;
+    private String mainScreenFileExtension;
+    private String mainScreenOriginalName;
+    private String logoName;
+    private String logoFileExtension;
+    private String logoOriginalName;
+    private  String mainScreenMessage;
+    private  String ticketScreenMessage;
 
 
 

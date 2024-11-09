@@ -1,5 +1,6 @@
 package com.dlj4.tech.queue.config;
 
+import com.dlj4.tech.queue.constants.SecurityConstants;
 import com.dlj4.tech.queue.service.JwtService;
 import com.dlj4.tech.queue.service.UserService;
 import jakarta.servlet.FilterChain;
@@ -15,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
@@ -26,6 +28,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private  JwtService jwtService;
     @Autowired
     private  UserService userService;
+   AntPathMatcher pathMatcher = new AntPathMatcher();
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
@@ -33,10 +36,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String userEmail;
-        if (StringUtils.isEmpty(authHeader) || !StringUtils.startsWith(authHeader, "Bearer ")) {
-            filterChain.doFilter(request, response);
+        String requestPath = request.getRequestURI();
+        String path = request.getRequestURI();
+
+        boolean isPermitted = SecurityConstants.PERMITTED_URLS.stream()
+                .anyMatch(permittedUrl -> pathMatcher.match(permittedUrl, path));
+
+        if (isPermitted) {
+            filterChain.doFilter(request, response); // Skip filter if URL is permitted
             return;
         }
+
         jwt = authHeader.substring(7);
         userEmail = jwtService.extractUserName(jwt);
         if (StringUtils.isNotEmpty(userEmail)

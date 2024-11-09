@@ -1,6 +1,5 @@
 package com.dlj4.tech.queue.dao.request;
 
-import com.dlj4.tech.queue.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;

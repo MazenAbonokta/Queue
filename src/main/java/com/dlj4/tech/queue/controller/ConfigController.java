@@ -17,7 +17,7 @@ public class ConfigController {
     @PostMapping("/upload-screen-config")
     public ResponseEntity<ConfigResponse> UploadScreenConfig(@RequestBody ConfigRequest configRequest) {
 
-        if(configRequest.getId()=="")
+        if(configRequest.getId().toString()=="")
         {
          return  ResponseEntity.ok(configService.createConfig(configRequest));
         }
@@ -26,11 +26,21 @@ public class ConfigController {
         }
 
     }
-    @GetMapping("/get-config/{type}")
-    public ResponseEntity<ConfigResponse> GetConfigByType(@PathVariable("type") String configType) {
+    @PutMapping("/update-screen-config")
+    public ResponseEntity<ConfigResponse> UpdateScreenConfig(@RequestBody ConfigRequest configRequest) {
 
-       return ResponseEntity.ok(configService.getConfigByType(configType));
+        if(configRequest.getId().toString()=="")
+        {
+            return  ResponseEntity.ok(configService.createConfig(configRequest));
+        }
+        else{
+            return  ResponseEntity.ok(configService.updateConfig(configRequest));
+        }
 
+    }
+    @GetMapping("/get-config")
+    public ResponseEntity<ConfigResponse> GetConfigBy() {
+       return ResponseEntity.ok(configService.getConfig());
     }
 
 

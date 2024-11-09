@@ -1,4 +1,4 @@
-package com.dlj4.tech.queue.enums;
+package com.dlj4.tech.queue.constants;
 
 public enum Role {
     USER,

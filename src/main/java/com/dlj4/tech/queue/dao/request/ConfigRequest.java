@@ -12,10 +12,15 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class ConfigRequest {
-    private String name;
-    private String id;
-    private String editor;
-    private String fileExt;
-    private String configType;
-    private String img;
+    private Long id;
+    private String mainScreenName;
+    private String mainScreenFileExtension;
+    private String mainScreenOriginalName;
+    private String logoName;
+    private String logoFileExtension;
+    private String logoOriginalName;
+    private  String mainScreenMessage;
+    private  String ticketScreenMessage;
+    private String logoImg;
+    private  String mainScreenImg;
 }

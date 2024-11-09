@@ -1,6 +1,6 @@
 package com.dlj4.tech.queue.dao.request;
 
-import com.dlj4.tech.queue.enums.OrderStatus;
+import com.dlj4.tech.queue.constants.OrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

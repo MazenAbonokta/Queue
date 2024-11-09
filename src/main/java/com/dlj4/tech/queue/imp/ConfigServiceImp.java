@@ -19,6 +19,7 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -29,7 +30,7 @@ public class ConfigServiceImp implements ConfigService {
 
     @Autowired
     ObjectsDataMapper  objectsDataMapper;
-    String uploadDir = "uploads/";
+    String uploadDir = "src/main/resources/static/uploads/";
     @Override
     public ConfigResponse createConfig(ConfigRequest configRequest) {
         try {
@@ -37,20 +38,30 @@ public class ConfigServiceImp implements ConfigService {
 
             // Save each file from Base64
             Files.createDirectories(Paths.get(uploadDir));
-            String base64File = configRequest.getImg();
+            String base64File = configRequest.getLogoImg();
             byte[] decodedBytes = Base64.getDecoder().decode(base64File.split(",")[1]); // Removes data prefix
-            String Ext=configRequest.getFileExt().split("/")[1];
-            String hashedFilename=generateHash( configRequest.getName());
-            String filePath=uploadDir + hashedFilename+"."+Ext;
-            String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("/" + hashedFilename+"."+Ext)
-                    .toUriString();
+            String Ext=configRequest.getLogoFileExtension().split("/")[1];
+            String hashedFilename=generateHash( configRequest.getLogoOriginalName())+"."+Ext;
+            String filePath=uploadDir + hashedFilename;
+
             File file = new File(filePath);
             try (FileOutputStream fos = new FileOutputStream(file)) {
                 fos.write(decodedBytes);
             }
+            // Save each file from Base64
+            Files.createDirectories(Paths.get(uploadDir));
+             base64File = configRequest.getMainScreenImg();
+            decodedBytes = Base64.getDecoder().decode(base64File.split(",")[1]); // Removes data prefix
+             Ext=configRequest.getMainScreenFileExtension().split("/")[1];
+            String hashedMainFilename=generateHash( configRequest.getMainScreenOriginalName())+"."+Ext;
+            String mainfilePath=uploadDir + hashedMainFilename;
 
-            ConfigScreen configScreen=objectsDataMapper.configScreenRequestToConfigScreen(configRequest,fileUrl,hashedFilename);
+             file = new File(mainfilePath);
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                fos.write(decodedBytes);
+            }
+
+            ConfigScreen configScreen=objectsDataMapper.configScreenRequestToConfigScreen(configRequest,hashedFilename,hashedMainFilename);
            // ConfigScreen configScreen=objectsDataMapper.configScreenRequestToConfigScreen(configRequest,file.getAbsolutePath(),hashedFilename);
 
            configScreen= configRepository.save(configScreen);
@@ -69,7 +80,7 @@ public class ConfigServiceImp implements ConfigService {
     public ConfigResponse updateConfig(ConfigRequest configRequest) {
         try {
 
-            Optional<ConfigScreen> configScreenObj = configRepository.findById(Long.getLong(configRequest.getId()));
+            Optional<ConfigScreen> configScreenObj = configRepository.findById(configRequest.getId());
 
             if(configScreenObj.isEmpty()){
                 return createConfig(configRequest);
@@ -77,25 +88,39 @@ public class ConfigServiceImp implements ConfigService {
 
             // Save each file from Base64
             Files.createDirectories(Paths.get(uploadDir));
-            String base64File = configRequest.getImg();
+            String base64File = configRequest.getLogoImg();
             byte[] decodedBytes = Base64.getDecoder().decode(base64File.split(",")[1]); // Removes data prefix
-            String Ext=configRequest.getFileExt().split(".")[1];
-            String hashedFilename=generateHash( configRequest.getName());
-            String filePath=uploadDir + hashedFilename+"."+Ext;
-            String fileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("/" + hashedFilename+"."+Ext)
-                    .toUriString();
+            String Ext=configRequest.getLogoFileExtension().split("/")[1];
+            String hashedFilename=generateHash( configRequest.getLogoOriginalName())+"."+Ext;
+            String filePath=uploadDir + hashedFilename;
+
             File file = new File(filePath);
             try (FileOutputStream fos = new FileOutputStream(file)) {
                 fos.write(decodedBytes);
             }
+            // Save each file from Base64
+            Files.createDirectories(Paths.get(uploadDir));
+            base64File = configRequest.getMainScreenImg();
+            decodedBytes = Base64.getDecoder().decode(base64File.split(",")[1]); // Removes data prefix
+            Ext=configRequest.getMainScreenFileExtension().split("/")[1];
+            String hashedMainFilename=generateHash( configRequest.getMainScreenOriginalName())+"."+Ext;
+            String mainfilePath=uploadDir + hashedMainFilename;
+
+            file = new File(mainfilePath);
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                fos.write(decodedBytes);
+            }
+
 
             ConfigScreen configScreen= configScreenObj.get();
-            configScreen.setName(hashedFilename);
-            configScreen.setContent(configRequest.getEditor());
-            configScreen.setPath(fileUrl);
-            configScreen.setOriginalName(configRequest.getName());
-            configScreen.setOriginalName(configRequest.getName());
+            configScreen.setLogoName(hashedFilename);
+            configScreen.setMainScreenMessage(configRequest.getMainScreenMessage());
+
+            configScreen.setLogoOriginalName(configRequest.getLogoOriginalName());
+            configScreen.setMainScreenName(hashedMainFilename);
+
+            configScreen.setTicketScreenMessage(configRequest.getTicketScreenMessage());
+            configScreen.setMainScreenOriginalName(configRequest.getMainScreenOriginalName());
             configRepository.save(configScreen);
 
             ConfigResponse configResponse=objectsDataMapper.configScreenToConfigScreenResponse((configScreen));
@@ -108,14 +133,14 @@ public class ConfigServiceImp implements ConfigService {
     }
 
     @Override
-    public ConfigResponse getConfigByType(String configType) {
-     Optional<ConfigScreen> configScreen =  configRepository.findByConfigType(configType);
+    public ConfigResponse getConfig() {
+     List<ConfigScreen> configScreen =  configRepository.findAll();
      if(configScreen.isEmpty())
      {
          return null;
 
      }
-     ConfigResponse configResponse = objectsDataMapper.configScreenToConfigScreenResponse(configScreen.get());
+     ConfigResponse configResponse = objectsDataMapper.configScreenToConfigScreenResponse(configScreen.get(0));
      return  configResponse;
     }
 
