@@ -5,6 +5,7 @@ import com.dlj4.tech.queue.dao.request.SigningRequest;
 import com.dlj4.tech.queue.dao.request.UserRequest;
 import com.dlj4.tech.queue.dao.response.JwtAuthenticationResponse;
 import com.dlj4.tech.queue.dao.response.UserResponse;
+import com.dlj4.tech.queue.entity.User;
 
 public interface AuthenticationService {
    JwtAuthenticationResponse   signIn(SigningRequest request);
@@ -12,6 +13,7 @@ public interface AuthenticationService {
     public UserResponse signUp(UserRequest userRequest);
     public void updateUser(UserRequest userRequest);
     public void deleteUser(Long id);
+    public User findUserByUsername(String username);
 
 
 

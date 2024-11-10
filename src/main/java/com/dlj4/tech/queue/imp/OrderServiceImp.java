@@ -18,6 +18,7 @@ import com.dlj4.tech.queue.service.OrderService;
 import com.dlj4.tech.queue.service.ServiceService;
 import com.dlj4.tech.queue.service.TemplatePrintService;
 import com.dlj4.tech.queue.service.WindowService;
+import jakarta.transaction.Transactional;
 import javazoom.jl.player.Player;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -25,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -308,5 +310,25 @@ User user =getCurrentUser();
        } catch (Exception e) {
            log.error("createOrderActions error:{}",e.getMessage());
        }
+    }
+    @Scheduled(cron = "0 0 2 * * ?")
+    @Transactional
+    public void updatePendingOrdersToCalled() {
+updateOldTickets();
+    }
+    @Override
+    public void   updateOldTickets()
+    {
+        // Fetch all orders with status PENDING
+        ZonedDateTime startOfToday = ZonedDateTime.now().toLocalDate().atStartOfDay(ZonedDateTime.now().getZone());
+
+        // Fetch all orders with status PENDING and createdAt before today
+        List<Order> pendingOrdersNotToday = orderRepository.findByTodayAndCreatedAtBefore(true, startOfToday);
+
+        // Update each order's status to CALLED
+        pendingOrdersNotToday.forEach(order -> order.setToday(false));
+
+        // Save all updated orders
+        orderRepository.saveAll(pendingOrdersNotToday);
     }
 }

@@ -21,7 +21,7 @@ public interface OrderService {
     public  OrderResponse getLastCalledOrderByUserId(Long userId);
     public Long getCountByServiceIdAndStatus (Long serviceId,OrderStatus orderStatus);
     public List<MainScreenTicket> getLastTickets();
-
+    public void   updateOldTickets();
 
 }
 

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -29,7 +30,7 @@ public interface OrderRepository extends JpaRepository<Order,Long> {
 
     Optional<Order> findTopByUserIdOrderByCallDateDesc(Long userId);
     @Query("SELECT COUNT(u) FROM Order u WHERE u.orderStatus=?1 and u.service.id=?2")
-long countByOrderStatusAAndServiceId(OrderStatus orderStatus,Long Service_Id);
-
+    long countByOrderStatusAAndServiceId(OrderStatus orderStatus,Long Service_Id);
+    List<Order> findByTodayAndCreatedAtBefore(boolean today, ZonedDateTime date);
 
 }

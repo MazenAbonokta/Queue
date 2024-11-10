@@ -58,6 +58,7 @@ public class ObjectsDataMapper {
                 .currentNumber(CurrentNumber)
                 .service(service)
                 .window(window)
+                .today(true)
                 .build();
     }
 

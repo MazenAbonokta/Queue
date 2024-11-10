@@ -106,6 +106,8 @@ public class JwtServiceImpl implements JwtService {
             claims.put("username", user.getUsername());           // Add window ID
             claims.put("fullName", user.getName());  // Add window number
         }
+        claims.put("role", user.getRole());
+
         return claims;
     }
 }

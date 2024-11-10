@@ -18,4 +18,5 @@ public class JwtAuthenticationResponse {
     private  String status;
     private Long WindowId;
     private String WindowNumber;
+    private String Role;
 }

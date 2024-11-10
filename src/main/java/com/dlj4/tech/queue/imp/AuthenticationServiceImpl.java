@@ -45,7 +45,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     WindowService  windowService;
     @Value("${token.access.token.expiration}")
     private long accessTokenExpiration;
-
     @Transactional
     @Override
     public JwtAuthenticationResponse signIn(SigningRequest request) {
@@ -61,16 +60,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             tokenRepository.saveAll(activeTokens);
         }
         var jwt = jwtService.generateToken(user);
-
         var refreshToken = jwtService.generateRefreshToken(user);
         var expiresAt = new Date(System.currentTimeMillis() + accessTokenExpiration);
         tokenRepository.save(new Token(jwt, refreshToken, expiresAt, user, true));
         return JwtAuthenticationResponse.builder().token(jwt).refreshToken(refreshToken).expiresAt(expiresAt).status("success")
                 .WindowId(user.getWindow().getId())
                 .WindowNumber(user.getWindow().getWindowNumber())
+                .Role(user.getRole().toString())
                 .build();
     }
-
     @Override
     public JwtAuthenticationResponse refreshToken(RefreshRequest request) {
         Token token = tokenRepository.findByRefreshToken(request.getRefreshToken()).orElseThrow(() -> new RefreshTokenNotFoundException(request.getRefreshToken()));
@@ -82,14 +80,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             token.setIsActive(false);
             tokenRepository.save(token);
             tokenRepository.save(new Token(newAccessToken, newRefreshToken, expiresAt, user, true));
-            return new JwtAuthenticationResponse(newAccessToken, newRefreshToken, expiresAt,"success",user.getWindow().getId(),user.getWindow().getWindowNumber());
+            return new JwtAuthenticationResponse(newAccessToken, newRefreshToken, expiresAt,"success",user.getWindow().getId(),user.getWindow().getWindowNumber(),user.getRole().toString());
 
         } else {
             tokenRepository.delete(token);
             return null;
         }
     }
-
     @Override
     public UserResponse signUp(UserRequest userRequest) {
 
@@ -106,7 +103,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
        UserResponse response=objectsDataMapper.userToUserResponse(user);
        return  response;
     }
-
     @Override
     public void updateUser(UserRequest userRequest) {
       User user=userRepository.findByUsername(userRequest.getUsername())
@@ -115,12 +111,22 @@ public class AuthenticationServiceImpl implements AuthenticationService {
       user=objectsDataMapper.copyUserRequestToUser(user,userRequest);
       userRepository.save(user);
     }
-
     @Override
     public void deleteUser(Long id) {
        User user= userRepository.findById(id).orElseThrow(
                ()->new ResourceNotFoundException("UserNotFound"));
-user.setDeleted(true);
+       user.setDeleted(true);
        userRepository.save(user);
+    }
+
+    @Override
+    public User findUserByUsername(String username) {
+
+      Optional<User> user=  userRepository.findByUsername(username);
+      if(user.isPresent())
+      {
+          return user.get();
+      }
+        return null;
     }
 }
