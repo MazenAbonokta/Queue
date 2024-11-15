@@ -131,7 +131,7 @@ NotificationService notificationService;
         catch (Exception e) {
             log.info(e.getMessage());
         }
-User user =getCurrentUser();
+        User user =getCurrentUser();
         Order nextOrder= orderRepository.
                 findFirstByOrderStatusAndServiceId(OrderStatus.PENDING,orderDAO.getServiceId());
         Window window = windowService.getWindowByID(user.getWindow().getId());
@@ -260,17 +260,21 @@ User user =getCurrentUser();
     }
 
     public void playSound(String fileName) {
+        log.info("Start PlaySound {}", fileName);
         Player player;
         // Load the audio file from resources
         ClassPathResource resource = new ClassPathResource("sound/" + fileName);
         //  URL url= new URL("https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav");
         //  InputStream inputStream = getClass().getClassLoader().getResourceAsStream(resource.getFile());
         //     AudioInputStream audioStream = AudioSystem.getAudioInputStream(resource.getFile());
-        try (InputStream inputStream = new FileInputStream(resource.getFile())) {
+        try (InputStream inputStream = resource.getInputStream()) {
             player = new Player(inputStream);
             player.play();
 
+            log.info("End PlaySound {}", fileName);
+
         } catch (Exception e) {
+            log.error("Play Sound Error {}", e.getMessage());
             e.printStackTrace();
         }
         // Obtain a clip to play the audio

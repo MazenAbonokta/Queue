@@ -64,8 +64,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         var expiresAt = new Date(System.currentTimeMillis() + accessTokenExpiration);
         tokenRepository.save(new Token(jwt, refreshToken, expiresAt, user, true));
         return JwtAuthenticationResponse.builder().token(jwt).refreshToken(refreshToken).expiresAt(expiresAt).status("success")
-                .WindowId(user.getWindow().getId())
-                .WindowNumber(user.getWindow().getWindowNumber())
+                .WindowId(user.getWindow()==null?0:user.getWindow().getId())
+                .WindowNumber(user.getWindow()==null?"0":user.getWindow().getWindowNumber())
                 .Role(user.getRole().toString())
                 .build();
     }

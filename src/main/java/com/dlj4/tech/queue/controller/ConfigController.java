@@ -17,7 +17,7 @@ public class ConfigController {
     @PostMapping("/upload-screen-config")
     public ResponseEntity<ConfigResponse> UploadScreenConfig(@RequestBody ConfigRequest configRequest) {
 
-        if(configRequest.getId().toString()=="")
+        if(configRequest.getId()==null || configRequest.getId().toString()=="")
         {
          return  ResponseEntity.ok(configService.createConfig(configRequest));
         }

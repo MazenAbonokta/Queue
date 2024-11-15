@@ -85,7 +85,7 @@ public class ObjectsDataMapper {
                 .phone(user.getPhone())
                 .address(user.getAddress())
                 .id(user.getId())
-                .windowId(user.getWindow().getId().toString())
+                .windowId(user.getWindow()==null?null:user.getWindow().getId().toString())
                 .role(user.getRole().toString())
                 .status(user.getStatus())
 

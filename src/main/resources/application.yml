@@ -9,6 +9,7 @@ spring:
     password: guest
     connection-timeout: 10s
 
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -19,7 +20,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/queue
     username: root
-    password:
+    password: p@ssw0rd
     driver-class-name: com.mysql.cj.jdbc.Driver
 server:
   port: 8083
