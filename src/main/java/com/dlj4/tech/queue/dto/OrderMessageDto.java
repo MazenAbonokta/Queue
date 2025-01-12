@@ -15,4 +15,5 @@ public class OrderMessageDto implements Serializable {
     private static final long serialVersionUID = 1L;
     Long TicketNumber;String WindowNumber;
     String Code;
+    String IpAddress;
 }

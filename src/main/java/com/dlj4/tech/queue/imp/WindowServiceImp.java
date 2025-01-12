@@ -3,7 +3,7 @@ package com.dlj4.tech.queue.imp;
 import com.dlj4.tech.queue.dao.request.WindowRequest;
 import com.dlj4.tech.queue.dao.request.WindowRoleDAO;
 import com.dlj4.tech.queue.dao.response.WindowResponse;
-import com.dlj4.tech.queue.entity.ServiceEntity;
+
 import com.dlj4.tech.queue.entity.Window;
 import com.dlj4.tech.queue.entity.WindowRole;
 import com.dlj4.tech.queue.exception.ResourceAlreadyExistException;
@@ -15,9 +15,10 @@ import com.dlj4.tech.queue.service.WindowRoleService;
 import com.dlj4.tech.queue.service.WindowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import  java.util.function.Function;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -75,9 +76,15 @@ public class WindowServiceImp implements WindowService {
         Window window= getWindowByID(id);
         window= objectsDataMapper.copyWindowRequestToWindow(windowRequest,window);
         windowRepository.save(window);
+        List<WindowRole> windowRoles= windowRoleService.getUpdateRole(objectsDataMapper.windowToWindowRoleDAO(window,windowRequest.getServices()));
+
+        List <WindowRole> result= windowRoleService.mergeServiceWindows(window.getWindowRoles(), windowRoles);
+        window.setWindowRoles(result);
+
         return objectsDataMapper.windowToWindowResponse(window);
 
     }
+
 
     private void validateIpAddress(String IpAddress)
     {

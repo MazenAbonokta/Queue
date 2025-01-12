@@ -18,6 +18,7 @@ public class NotificationService {
             template.convertAndSend("/app/updateServiceTicketsCount", ticketsMessage);
     }
 
+
     public void  sendNewTicketToMainScreen(MainScreenTicket ticket) {
         template.convertAndSend("/app/addNewTicket", ticket);
     }

@@ -1,7 +1,10 @@
 package com.dlj4.tech.queue.controller;
 
+import com.dlj4.tech.queue.constants.OrderStatus;
 import com.dlj4.tech.queue.dao.request.OrderDAO;
+import com.dlj4.tech.queue.dao.request.TransferRequestDTO;
 import com.dlj4.tech.queue.dao.response.OrderResponse;
+import com.dlj4.tech.queue.dao.response.TransferResponse;
 import com.dlj4.tech.queue.dao.response.UserOrders;
 import com.dlj4.tech.queue.dto.MainScreenTicket;
 import com.dlj4.tech.queue.entity.Order;
@@ -47,12 +50,29 @@ public class OrderController {
              orderService.getOrdersByUserId(user.getId()), HttpStatus.OK);
 
     }
+
+    @GetMapping("/getOrdersByUserAndStatus/{status}")
+    public ResponseEntity<List<UserOrders>> getCanceledOrdersByUser(@RequestParam String status){
+        User user =  (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+
+        return new ResponseEntity<List<UserOrders>>(
+                orderService.getOrdersByUserIdAndStatus(user.getId(), OrderStatus.valueOf(status)), HttpStatus.OK);
+
+    }
     @GetMapping("/getLastTickets")
     public ResponseEntity<List<MainScreenTicket>> getLastTickets(){
 
 
 
         return new ResponseEntity<List<MainScreenTicket>>( orderService.getLastTickets(), HttpStatus.OK);
+
+    }
+
+
+    @PostMapping("/createTransferRequest")
+    public ResponseEntity<TransferResponse> createTransferRequest(@RequestBody TransferRequestDTO transferRequest){
+        return new ResponseEntity<TransferResponse>( orderService.createTransferRequest(transferRequest), HttpStatus.OK);
 
     }
 }

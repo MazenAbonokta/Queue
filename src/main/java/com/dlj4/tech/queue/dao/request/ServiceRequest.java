@@ -16,4 +16,5 @@ public class ServiceRequest {
     private  int end;
     private String name;
     private  Long categoryId;
+    private  String endTime;
 }

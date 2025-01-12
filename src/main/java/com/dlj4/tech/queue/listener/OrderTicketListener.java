@@ -15,6 +15,6 @@ public class OrderTicketListener {
 
     @RabbitListener(queues = "#{@environment.getProperty('queue.name')}",concurrency = "1")
     public void receiveMessage(OrderMessageDto orderMessageDto) {
-        orderService.callNumber(orderMessageDto.getTicketNumber(),orderMessageDto.getWindowNumber(),orderMessageDto.getCode());
+        orderService.callNumber(orderMessageDto.getTicketNumber(),orderMessageDto.getWindowNumber(),orderMessageDto.getCode(),orderMessageDto.getIpAddress());
     }
 }

@@ -17,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @Table(name = "ORDERS")
 @Builder
-@Where(clause = "today=true")
+@Where(clause = "today=true AND deleted=false")
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,11 +30,14 @@ public class Order {
     private OrderStatus orderStatus;
         private boolean today=true;
 
+private   String code;
+    private boolean deleted = Boolean.FALSE;
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "window_id")
     Window window;
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "service_id")
+
     ServiceEntity service;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
@@ -43,5 +46,6 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     List<OrderAction> orderActions;
-
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    List<OrderAction> orderConvertRequests;
 }

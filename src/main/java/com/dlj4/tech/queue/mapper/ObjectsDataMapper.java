@@ -1,5 +1,6 @@
 package com.dlj4.tech.queue.mapper;
 
+import com.dlj4.tech.queue.constants.TransferRequestStatus;
 import com.dlj4.tech.queue.dao.request.*;
 import com.dlj4.tech.queue.dao.response.*;
 import com.dlj4.tech.queue.dto.MainScreenTicket;
@@ -10,11 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -34,7 +37,7 @@ public class ObjectsDataMapper {
                 .category(category)
                 .code(serviceRequest.getCode())
                 .name(serviceRequest.getName())
-
+                .endTime(serviceRequest.getEndTime()==""?null:LocalTime.parse(serviceRequest.getEndTime()))
                 .build();
 
     }
@@ -56,6 +59,7 @@ public class ObjectsDataMapper {
                 .createdAt(ZonedDateTime.now(ZoneId.of("UTC")))
                 .orderStatus(OrderStatus.PENDING)
                 .currentNumber(CurrentNumber)
+                .code(service.getCode())
                 .service(service)
                 .window(window)
                 .today(true)
@@ -88,7 +92,7 @@ public class ObjectsDataMapper {
                 .windowId(user.getWindow()==null?null:user.getWindow().getId().toString())
                 .role(user.getRole().toString())
                 .status(user.getStatus())
-
+                .windowNumber(user.getWindow()==null?null:user.getWindow().getWindowNumber())
                 .build();
     }
     public User copyUserRequestToUser(User user,UserRequest userRequest){
@@ -97,6 +101,7 @@ public class ObjectsDataMapper {
         user.setPhone(userRequest.getPhone());
         user.setEmail(userRequest.getEmail());
         user.setPassword(bCryptPasswordEncoder.encode(userRequest.getPassword()));
+
         user.setStatus(userRequest.getStatus());
         return user;
     }
@@ -111,6 +116,7 @@ public class ObjectsDataMapper {
                .start(service.getStart())
                .name(service.getName())
                .id(service.getId())
+               .endTime(service.getEndTime()==null?"":service.getEndTime().toString())
                .pendingOrdersCount(service.getOrders() ==null?0:service.getOrders().stream().filter(x->x.getOrderStatus() ==OrderStatus.PENDING).count())
                .build();
 
@@ -121,7 +127,7 @@ public class ObjectsDataMapper {
         serviceEntity.setCode(serviceRequest.getCode());
         serviceEntity.setStart(serviceRequest.getStart());
         serviceEntity.setName(serviceRequest.getName());
-
+        serviceEntity.setEndTime(LocalTime.parse(serviceRequest.getEndTime()));
         return serviceEntity;
     }
 
@@ -218,15 +224,46 @@ System.out.println(e.getMessage());
                 .currentNumber(order.getCurrentNumber())
                 .callDate(order.getCallDate()==null?"": order.getCallDate() .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .windowNumber(order.getWindow()==null?0:order.getWindow().getId())
-                .serviceCode(order.getWindow()==null?"-":order.getService().getCode())
+                .serviceCode(order.getCode())
                 .build();
     }
 
     public MainScreenTicket orderActionToMainScreenTicket(OrderAction orderAction)
     {
     return MainScreenTicket.builder()
-            .ticketNumber(orderAction.getOrder().getService().getCode() + '-' + orderAction.getOrder().getCurrentNumber())
+            .ticketNumber(orderAction.getOrder().getCode() + '-' + orderAction.getOrder().getCurrentNumber())
             .counter(orderAction.getOrder().getWindow().getWindowNumber())
             .build();
+    }
+
+    public TransferResponse transferOrderToTransferResponseResponse(TransferRequest transferRequest)
+    {
+        return TransferResponse.builder()
+                .requestId(transferRequest.getId())
+                .order(transferRequest.getRequestService().getCode() + "-" + transferRequest.getOrder().getCurrentNumber())
+                .requestedService(transferRequest.getRequestService().getName())
+                .requestedWindow(transferRequest.getRequestWindow().getWindowNumber())
+                .requestDate(transferRequest.getCreatedAt().format(DateTimeFormatter.ofPattern("YYYY-mm-dd HH:mm:ss")))
+                .userRequester(transferRequest.getRequestUser().getName())
+                .targetService(transferRequest.getResponseService().getName())
+                .targetWindow(transferRequest.getResponseWindow().getWindowNumber())
+                .responseDate(transferRequest.getUpdatedAt().format(DateTimeFormatter.ofPattern("YYYY-mm-dd HH:mm:ss")))
+                .userResponse(transferRequest.getResponseUser()==null?"":transferRequest.getResponseUser().getName())
+                .status(transferRequest.getRequestStatus())
+                .build();
+    }
+
+    public TransferRequest transferRequestDtoToTransferRequest(User user, ServiceEntity requestedService,
+                                                               Window window, ServiceEntity targetService)
+
+    {
+        return TransferRequest.builder()
+                .requestUser(user)
+                .requestService(requestedService)
+                .responseService(targetService)
+                .requestWindow(window)
+                .createdAt(ZonedDateTime.now(ZoneId.of("UTC")))
+                .requestStatus(TransferRequestStatus.SEND)
+                .build();
     }
 }

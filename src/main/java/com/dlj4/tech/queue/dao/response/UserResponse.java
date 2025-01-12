@@ -20,5 +20,6 @@ public class UserResponse {
     private String status;
     private String address;
     private String windowId;
+    private String windowNumber;
     private String role;
 }

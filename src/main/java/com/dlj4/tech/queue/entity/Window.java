@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Where;
 
 import java.util.List;
 
@@ -14,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Table(name = "window_entity")
+@Where(clause = "deleted=false")
 public class Window {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,6 +30,12 @@ public class Window {
     @OneToMany(mappedBy = "window", cascade = CascadeType.MERGE, orphanRemoval = true)
     List<User> users;
 
+    @OneToMany(mappedBy = "window", cascade = CascadeType.MERGE, orphanRemoval = true)
+    List<TransferRequest> requestedOrders;
+
+    @OneToMany(mappedBy = "window", cascade = CascadeType.MERGE, orphanRemoval = true)
+    List<TransferRequest> approvedOrders;
+    private boolean deleted = Boolean.FALSE;
 
 
 }

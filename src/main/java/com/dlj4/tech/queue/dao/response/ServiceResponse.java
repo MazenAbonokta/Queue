@@ -15,6 +15,7 @@ public class ServiceResponse {
     private  Long categoryId;
     private  String categoryName;
     private String name;
-    private String serviceDate;
+    private String endTime;
     private Long pendingOrdersCount;
+
 }

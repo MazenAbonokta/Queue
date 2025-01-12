@@ -1,8 +1,10 @@
 package com.dlj4.tech.queue.imp;
+import com.dlj4.tech.queue.constants.UserStatus;
 import com.dlj4.tech.queue.dao.request.UserRequest;
 import com.dlj4.tech.queue.dao.response.UserResponse;
 import com.dlj4.tech.queue.entity.Token;
 import com.dlj4.tech.queue.entity.User;
+import com.dlj4.tech.queue.entity.UserActions;
 import com.dlj4.tech.queue.entity.Window;
 import com.dlj4.tech.queue.exception.RefreshTokenNotFoundException;
 import com.dlj4.tech.queue.exception.ResourceAlreadyExistException;
@@ -15,6 +17,7 @@ import com.dlj4.tech.queue.dao.request.SigningRequest;
 import com.dlj4.tech.queue.dao.response.JwtAuthenticationResponse;
 import com.dlj4.tech.queue.service.AuthenticationService;
 import com.dlj4.tech.queue.service.JwtService;
+import com.dlj4.tech.queue.service.UserActionService;
 import com.dlj4.tech.queue.service.WindowService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +48,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     WindowService  windowService;
     @Value("${token.access.token.expiration}")
     private long accessTokenExpiration;
+    @Autowired
+    private UserActionService userActionService;
     @Transactional
     @Override
     public JwtAuthenticationResponse signIn(SigningRequest request) {
@@ -63,6 +68,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         var refreshToken = jwtService.generateRefreshToken(user);
         var expiresAt = new Date(System.currentTimeMillis() + accessTokenExpiration);
         tokenRepository.save(new Token(jwt, refreshToken, expiresAt, user, true));
+        userActionService.AddNewAction(user.getUsername(), UserStatus.LOGIN);
         return JwtAuthenticationResponse.builder().token(jwt).refreshToken(refreshToken).expiresAt(expiresAt).status("success")
                 .WindowId(user.getWindow()==null?0:user.getWindow().getId())
                 .WindowNumber(user.getWindow()==null?"0":user.getWindow().getWindowNumber())
@@ -105,9 +111,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
     @Override
     public void updateUser(UserRequest userRequest) {
+        Window window= null;
+        window =userRequest.getWindowId()==""?null:windowService.getWindowByID(Long.parseLong(userRequest.getWindowId()));
+
       User user=userRepository.findByUsername(userRequest.getUsername())
               .orElseThrow(()-> new ResourceNotFoundException("User not Exist"));
-
+user.setWindow(window);
       user=objectsDataMapper.copyUserRequestToUser(user,userRequest);
       userRepository.save(user);
     }
