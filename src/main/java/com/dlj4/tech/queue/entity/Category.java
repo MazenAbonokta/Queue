@@ -19,9 +19,9 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private boolean deleted = Boolean.FALSE;
-    String name;
 
+    String name;
+    private boolean deleted = Boolean.FALSE;
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
 
     List<ServiceEntity> services;

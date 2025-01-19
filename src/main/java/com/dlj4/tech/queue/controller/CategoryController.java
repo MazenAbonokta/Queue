@@ -23,7 +23,7 @@ public class CategoryController {
         CategoryResponse category= categoryService.createCategory(categoryRequest.getName());
         return new ResponseEntity<CategoryResponse>(category,HttpStatus.CREATED);
     }
-    @PutMapping("/update/{id}")
+    @PutMapping("/update")
     public void updateCategory(@RequestBody CategoryRequest categoryRequest)
     {
         categoryService.updatedCategory(categoryRequest.getId(), categoryRequest.getName());
