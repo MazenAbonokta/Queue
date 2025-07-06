@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/window")
-public class WindowController {
+public class    WindowController {
 
     @Autowired
     WindowService windowService;

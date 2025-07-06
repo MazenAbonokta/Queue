@@ -30,10 +30,10 @@ public class Window {
     @OneToMany(mappedBy = "window", cascade = CascadeType.MERGE, orphanRemoval = true)
     List<User> users;
 
-    @OneToMany(mappedBy = "window", cascade = CascadeType.MERGE, orphanRemoval = true)
+    @OneToMany(mappedBy = "requestWindow", cascade = CascadeType.MERGE, orphanRemoval = true)
     List<TransferRequest> requestedOrders;
 
-    @OneToMany(mappedBy = "window", cascade = CascadeType.MERGE, orphanRemoval = true)
+    @OneToMany(mappedBy = "responseWindow", cascade = CascadeType.MERGE, orphanRemoval = true)
     List<TransferRequest> approvedOrders;
     private boolean deleted = Boolean.FALSE;
 

@@ -30,7 +30,10 @@ public class ServiceServiceImp implements ServiceService {
     @Override
     public ServiceResponse createService(ServiceRequest serviceRequest) {
 
-       ServiceEntity service= serviceRepository.save(getServiceEntity(serviceRequest));
+        Category category=categoryService.getCategoryById(serviceRequest.getCategoryId());
+
+        ServiceEntity service = objectsDataMapper.serviceDTOToServiceEntity(serviceRequest,category);
+        service= serviceRepository.save(service);
         return  objectsDataMapper.ServiceToServiceResponse(service);
     }
 
@@ -79,10 +82,5 @@ public class ServiceServiceImp implements ServiceService {
     }
 
 
-    ServiceEntity getServiceEntity(ServiceRequest serviceRequest){
-        Category category=categoryService.getCategoryById(serviceRequest.getCategoryId());
 
-        ServiceEntity service = objectsDataMapper.serviceDTOToServiceEntity(serviceRequest,category);
-        return service;
-    }
 }

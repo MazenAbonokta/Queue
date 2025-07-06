@@ -13,16 +13,15 @@ import java.util.Optional;
 
 @Repository
 public interface TransferRequestRepository  extends JpaRepository<TransferRequest,Long> {
-    @Query("select  TransferRequest p from  TransferRequest where p.requestUser.id=?1 and p.requestStatus=?2")
-    public Optional<List<TransferRequest>> findTransferRequestByUserIdAndRequestStatus(int userId, TransferRequestStatus requestStatus);
+    @Query("select p from TransferRequest p where p.requestUser.id = ?1 and p.requestStatus = ?2")
+    Optional<List<TransferRequest>> findTransferRequestByUserIdAndRequestStatus(Long userId, TransferRequestStatus requestStatus);
 
-    @Query  ("select  TransferRequest p from  TransferRequest where p.requestWindow.id=?1 and p.requestStatus=?2")
-    public Optional<List<TransferRequest>> findTransferRequestByWindowIdAndRequestStatus(int windowId, TransferRequestStatus requestStatus);
+    @Query("select p from TransferRequest p where p.requestWindow.id = ?1 and p.requestStatus = ?2")
+    Optional<List<TransferRequest>> findTransferRequestByWindowIdAndRequestStatus(Long windowId, TransferRequestStatus requestStatus);
 
-    @Query("select  TransferRequest p from  TransferRequest where p.responseUser.id=?1 and p.requestStatus=?2")
-    public Optional<List<TransferRequest>> findTransferRequestByResponseUserAndRequestStatus(int userId, TransferRequestStatus requestStatus);
+    @Query("select p from TransferRequest p where p.responseUser.id = ?1 and p.requestStatus = ?2")
+    Optional<List<TransferRequest>> findTransferRequestByResponseUserAndRequestStatus(Long userId, TransferRequestStatus requestStatus);
 
-    @Query  ("select  TransferRequest p from  TransferRequest where p.responseWindow.id=?1 and p.requestStatus=?2")
-    public Optional<List<TransferRequest>> findTransferRequestByResponseWindowAndRequestStatus(int windowId, TransferRequestStatus requestStatus);
-
+    @Query("select p from TransferRequest p where p.responseWindow.id = ?1 and p.requestStatus = ?2")
+    Optional<List<TransferRequest>> findTransferRequestByResponseWindowAndRequestStatus(Long windowId, TransferRequestStatus requestStatus);
 }

@@ -36,9 +36,10 @@ public class ServiceEntity {
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, orphanRemoval = true)
     List<WindowRole> windowRoles;
 
-    @OneToMany(mappedBy = "service", cascade = CascadeType.MERGE, orphanRemoval = true)
+
+    @OneToMany(mappedBy = "requestService", cascade = CascadeType.MERGE, orphanRemoval = true)
     List<TransferRequest> requestedOrders;
 
-    @OneToMany(mappedBy = "service", cascade = CascadeType.MERGE, orphanRemoval = true)
+    @OneToMany(mappedBy = "responseService", cascade = CascadeType.MERGE, orphanRemoval = true)
     List<TransferRequest> approvedOrders;
 }

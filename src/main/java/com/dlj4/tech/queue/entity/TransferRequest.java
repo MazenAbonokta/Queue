@@ -36,7 +36,7 @@ public class TransferRequest {
     @JoinColumn(name = "request_service_id")
     ServiceEntity requestService;
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "response_service_id")
+    @JoinColumn(name = "approved_service_id")
     ServiceEntity responseService;
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "request_user_id")

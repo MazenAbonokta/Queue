@@ -58,10 +58,10 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.MERGE, orphanRemoval = true)
     List<Order> orders;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.MERGE, orphanRemoval = true)
+    @OneToMany(mappedBy = "requestUser", cascade = CascadeType.MERGE, orphanRemoval = true)
     List<TransferRequest> requestedOrders;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.MERGE, orphanRemoval = true)
+    @OneToMany(mappedBy = "responseUser", cascade = CascadeType.MERGE, orphanRemoval = true)
     List<TransferRequest> approvedOrders;
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

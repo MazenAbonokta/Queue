@@ -6,6 +6,7 @@ import com.dlj4.tech.queue.entity.Token;
 import com.dlj4.tech.queue.entity.User;
 import com.dlj4.tech.queue.entity.UserActions;
 import com.dlj4.tech.queue.entity.Window;
+import com.dlj4.tech.queue.exception.AuthenticationFailedException;
 import com.dlj4.tech.queue.exception.RefreshTokenNotFoundException;
 import com.dlj4.tech.queue.exception.ResourceAlreadyExistException;
 import com.dlj4.tech.queue.exception.ResourceNotFoundException;
@@ -53,8 +54,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Transactional
     @Override
     public JwtAuthenticationResponse signIn(SigningRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+        }
+        catch (Exception e){
+            throw  new AuthenticationFailedException("Invalid username or password.");
+        }
+
         var user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid username or password."));
         List<Token> activeTokens = tokenRepository.findAllByUserAndIsActive(user, true).orElse(Collections.emptyList());
