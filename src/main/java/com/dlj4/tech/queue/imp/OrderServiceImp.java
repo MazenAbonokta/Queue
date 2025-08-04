@@ -22,6 +22,7 @@ import com.dlj4.tech.queue.service.WindowService;
 import jakarta.transaction.Transactional;
 import javazoom.jl.player.Player;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -75,9 +76,13 @@ NotificationService notificationService;
     private ServiceRepository serviceRepository;
 
     @Override
-    public void createOrder(Long serviceId) {
+    public void createOrder(Long serviceId) throws BadRequestException {
         ServiceEntity fetchedService = serviceService.getServiceById(serviceId);
         Long currentMaxNumber = orderRepository.findMaxCurrentNumberByServiceId(serviceId,fetchedService.getCode());
+        if (currentMaxNumber==null||currentMaxNumber>fetchedService.getEnd()){
+            log.error("Service Number Is Max");
+            throw new BadRequestException("Service {"+fetchedService.getName()+"} Number Is Max");
+        }
         Long newCurrenNumber= currentMaxNumber==0?fetchedService.getStart():(currentMaxNumber+1);
 
         Order order= objectsDataMapper.createOrderEntity(null,fetchedService,newCurrenNumber);

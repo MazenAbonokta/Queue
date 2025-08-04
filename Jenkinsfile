@@ -1,43 +1,43 @@
-pipeline{
+pipeline {
     agent any
 
-    environment{
-          DOCKER_CREDENTIALS_ID = 'docker_credential'
+    environment {
+        DOCKER_CREDENTIALS_ID = 'docker_credential'
         DOCKERHUB_REPO = 'mazenabonoktah'
         IMAGE_VERSION = 'v1' // Set the version of the image here
         RECIPIENTS = 'mazen.abonoktah@gmail.com'
     }
-    stages{
+    stages {
 
         stage("Check Docker Version")
-        {
-            steps{
-                sh 'docker version'
-            }
-        }
+                {
+                    steps {
+                        sh 'docker version'
+                    }
+                }
 
         stage("Build Service")
-        {
+                {
 
-            steps{
-                script{
-                    
-                        sh "mvn test compile"
-                    
+                    steps {
+                        script {
 
+                            sh "mvn test compile"
+
+
+                        }
+                    }
                 }
-            }
-        }
 
-        stage ("Build image and  Push it to docker hub")
-        {
-            steps{
-                script{
+        stage("Build image and  Push it to docker hub")
+                {
+                    steps {
+                        script {
 
-                      sh "mvn compile jib:dockerBuild -Dimage=${DOCKERHUB_REPO}/queue:${IMAGE_VERSION}"
+                            sh "mvn compile jib:dockerBuild -Dimage=${DOCKERHUB_REPO}/queue:${IMAGE_VERSION}"
+                        }
+                    }
                 }
-            }
-        }
         stage("Remove old containers ") {
             steps {
                 script {
@@ -56,10 +56,10 @@ pipeline{
             }
         }
 
-            stage("Remove images") {
+        stage("Remove images") {
             steps {
                 script {
-                            sh '''
+                    sh '''
                                 echo "<<<<<<<<<<<<Start remove images >>>>>>>>>>>>>>>>>"
 
                                 if docker images -a | grep "img" | awk '{print $1":"$2}' | xargs docker rmi -f; then
@@ -73,22 +73,23 @@ pipeline{
                 }
             }
         }
-         stage('Deploy with Docker Compose') {
+        stage('Deploy with Docker Compose') {
             steps {
                 script {
-             
-                        sh "docker-compose up -d"
-                
+
+                    sh "docker-compose up -d"
+
                 }
             }
         }
-  
-             post {
-        success {
-            echo "Pipeline completed successfully!"
-        }
-        failure {
-            echo "Pipeline failed."
+
+        post {
+            success {
+                echo "Pipeline completed successfully!"
+            }
+            failure {
+                echo "Pipeline failed."
+            }
         }
     }
 }

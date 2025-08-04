@@ -8,11 +8,12 @@ import com.dlj4.tech.queue.dao.response.UserOrders;
 import com.dlj4.tech.queue.dto.MainScreenTicket;
 import com.dlj4.tech.queue.entity.Order;
 import com.dlj4.tech.queue.constants.OrderStatus;
+import org.apache.coyote.BadRequestException;
 
 import java.util.List;
 
 public interface OrderService {
-    public void createOrder(Long serviceId);
+    public void createOrder(Long serviceId) throws BadRequestException;
     public void  callNumber(Long Number,String ScreenNumber,String Code,String IpAddress);
     public void  SendNumberToQueue(Long Number,String ScreenNumber,String Code,String IpAddress);
     public UserOrders  fetchNextOrder(OrderDAO orderDAO);

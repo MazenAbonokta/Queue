@@ -1,5 +1,6 @@
 package com.dlj4.tech.queue.mapper;
 
+import com.dlj4.tech.queue.constants.ServiceStatus;
 import com.dlj4.tech.queue.constants.TransferRequestStatus;
 import com.dlj4.tech.queue.dao.request.*;
 import com.dlj4.tech.queue.dao.response.*;
@@ -37,6 +38,8 @@ public class ObjectsDataMapper {
                 .category(category)
                 .code(serviceRequest.getCode())
                 .name(serviceRequest.getName())
+                .Type(serviceRequest.getType())
+                .status(serviceRequest.getStatus())
                 .endTime(serviceRequest.getEndTime()==""?null:LocalTime.parse(serviceRequest.getEndTime()))
                 .build();
 
@@ -116,6 +119,8 @@ public class ObjectsDataMapper {
                .start(service.getStart())
                .name(service.getName())
                .id(service.getId())
+               .status(service.getStatus().toString())
+               .type(service.getType().toString())
                .endTime(service.getEndTime()==null?"":service.getEndTime().toString())
                .pendingOrdersCount(service.getOrders() ==null?0:service.getOrders().stream().filter(x->x.getOrderStatus() ==OrderStatus.PENDING).count())
                .build();

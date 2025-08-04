@@ -1,5 +1,7 @@
 package com.dlj4.tech.queue.entity;
 
+import com.dlj4.tech.queue.constants.ServiceStatus;
+import com.dlj4.tech.queue.constants.ServiceType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,6 +28,11 @@ public class ServiceEntity {
     private  int end;
     private LocalTime endTime;
     private  String name;
+
+    @Enumerated(EnumType.STRING)
+    private ServiceStatus status;
+    @Enumerated(EnumType.STRING)
+    private ServiceType Type;
     private boolean deleted = Boolean.FALSE;
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "category_id")
