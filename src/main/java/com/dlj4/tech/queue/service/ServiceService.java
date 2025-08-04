@@ -1,5 +1,7 @@
 package com.dlj4.tech.queue.service;
 
+import com.dlj4.tech.queue.constants.ServiceStatus;
+import com.dlj4.tech.queue.constants.ServiceType;
 import com.dlj4.tech.queue.dao.request.ServiceRequest;
 import com.dlj4.tech.queue.dao.response.ServiceResponse;
 import com.dlj4.tech.queue.entity.ServiceEntity;
@@ -16,5 +18,6 @@ public interface ServiceService {
     public void deleteService(Long id );
     public List<ServiceResponse> getServices( );
     public List<ServiceEntity> getServicesByIds(List<Long> Ids);
+    List<ServiceResponse> getServicesByStatusAndType(ServiceStatus serviceStatus, ServiceType serviceType);
 
 }

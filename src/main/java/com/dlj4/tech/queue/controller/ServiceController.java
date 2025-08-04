@@ -1,5 +1,7 @@
 package com.dlj4.tech.queue.controller;
 
+import com.dlj4.tech.queue.constants.ServiceStatus;
+import com.dlj4.tech.queue.constants.ServiceType;
 import com.dlj4.tech.queue.dao.request.ServiceRequest;
 import com.dlj4.tech.queue.dao.response.ServiceResponse;
 import com.dlj4.tech.queue.exception.ResourceNotFoundException;
@@ -38,5 +40,11 @@ public class ServiceController {
     @GetMapping("/list")
     public ResponseEntity<List<ServiceResponse>> getServices(){
         return new ResponseEntity<List<ServiceResponse> >(serviceService.getServices(),HttpStatus.OK);
+    }
+    @GetMapping("/getByStatusAndType")
+    public ResponseEntity<List<ServiceResponse>> getByStatusAndType(String status,String type){
+
+
+        return new ResponseEntity<List<ServiceResponse> >(serviceService.getServicesByStatusAndType(ServiceStatus.valueOf(status), ServiceType.valueOf(type)),HttpStatus.OK);
     }
 }

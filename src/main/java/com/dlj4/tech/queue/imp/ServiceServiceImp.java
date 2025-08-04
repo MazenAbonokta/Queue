@@ -1,5 +1,7 @@
 package com.dlj4.tech.queue.imp;
 
+import com.dlj4.tech.queue.constants.ServiceStatus;
+import com.dlj4.tech.queue.constants.ServiceType;
 import com.dlj4.tech.queue.dao.request.ServiceRequest;
 import com.dlj4.tech.queue.dao.response.ServiceResponse;
 import com.dlj4.tech.queue.entity.Category;
@@ -76,11 +78,21 @@ public class ServiceServiceImp implements ServiceService {
         return  responses;
     }
 
+
+
     @Override
     public List<ServiceEntity> getServicesByIds(List<Long> Ids) {
         return serviceRepository.findAllByIdIn(Ids);
     }
 
+    @Override
+    public List<ServiceResponse> getServicesByStatusAndType(ServiceStatus serviceStatus, ServiceType serviceType){
+        List<ServiceEntity> serviceEntities= serviceRepository.findAllByStatusAndType( serviceStatus,serviceType );
+        List<ServiceResponse> responses = serviceEntities.stream().map(
+                objectsDataMapper::ServiceToServiceResponse
+        ).collect(Collectors.toList());
+        return  responses;
+    }
 
 
 }
