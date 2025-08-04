@@ -121,6 +121,7 @@ public class ObjectsDataMapper {
                .id(service.getId())
                .status(service.getStatus().toString())
                .type(service.getType().toString())
+               .currentNumber(service.getOrders() ==null?0:service.getOrders().stream().filter(x->x.getOrderStatus() ==OrderStatus.PENDING).findFirst().orElse(null).getCurrentNumber())
                .endTime(service.getEndTime()==null?"":service.getEndTime().toString())
                .pendingOrdersCount(service.getOrders() ==null?0:service.getOrders().stream().filter(x->x.getOrderStatus() ==OrderStatus.PENDING).count())
                .build();

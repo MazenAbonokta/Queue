@@ -23,5 +23,6 @@ public class ServiceResponse {
     private Long pendingOrdersCount;
     private String status;
     private String type;
+    private Long currentNumber;
 
 }
