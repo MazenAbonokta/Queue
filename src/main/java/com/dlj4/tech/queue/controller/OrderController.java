@@ -10,6 +10,7 @@ import com.dlj4.tech.queue.dto.MainScreenTicket;
 import com.dlj4.tech.queue.entity.Order;
 import com.dlj4.tech.queue.entity.User;
 import com.dlj4.tech.queue.service.OrderService;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +37,7 @@ public class OrderController {
         orderService.reCallTicket(orderDAO);
     }
     @GetMapping("/CreateOrder/{serviceId}")
-    public void CreateOrder(@PathVariable("serviceId") Long serviceId){
+    public void CreateOrder(@PathVariable("serviceId") Long serviceId) throws BadRequestException {
 
         orderService.createOrder(serviceId);
     }

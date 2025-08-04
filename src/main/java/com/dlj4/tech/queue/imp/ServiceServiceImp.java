@@ -87,7 +87,7 @@ public class ServiceServiceImp implements ServiceService {
 
     @Override
     public List<ServiceResponse> getServicesByStatusAndType(ServiceStatus serviceStatus, ServiceType serviceType){
-        List<ServiceEntity> serviceEntities= serviceRepository.findAllByStatusAndType( serviceStatus,serviceType );
+        List<ServiceEntity> serviceEntities= serviceRepository.findAllByServiceStatusAndServiceType( serviceStatus,serviceType );
         List<ServiceResponse> responses = serviceEntities.stream().map(
                 objectsDataMapper::ServiceToServiceResponse
         ).collect(Collectors.toList());

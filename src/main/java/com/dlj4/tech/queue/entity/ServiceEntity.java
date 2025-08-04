@@ -28,11 +28,11 @@ public class ServiceEntity {
     private  int end;
     private LocalTime endTime;
     private  String name;
-
+    private  String icon;
     @Enumerated(EnumType.STRING)
-    private ServiceStatus status;
+    private ServiceStatus serviceStatus;
     @Enumerated(EnumType.STRING)
-    private ServiceType Type;
+    private ServiceType serviceType;
     private boolean deleted = Boolean.FALSE;
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "category_id")

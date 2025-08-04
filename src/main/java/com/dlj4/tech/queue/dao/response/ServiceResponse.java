@@ -21,8 +21,9 @@ public class ServiceResponse {
     private String name;
     private String endTime;
     private Long pendingOrdersCount;
-    private String status;
-    private String type;
+    private String serviceStatus;
+    private String serviceType;
+    private String icon;
     private Long currentNumber;
 
 }

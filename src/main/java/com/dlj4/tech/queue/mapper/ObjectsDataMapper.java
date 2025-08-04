@@ -38,8 +38,9 @@ public class ObjectsDataMapper {
                 .category(category)
                 .code(serviceRequest.getCode())
                 .name(serviceRequest.getName())
-                .Type(serviceRequest.getType())
-                .status(serviceRequest.getStatus())
+                .serviceType(serviceRequest.getServiceType())
+                .serviceStatus(serviceRequest.getServiceStatus())
+                .icon(serviceRequest.getIcon()==null?"":serviceRequest.getIcon())
                 .endTime(serviceRequest.getEndTime()==""?null:LocalTime.parse(serviceRequest.getEndTime()))
                 .build();
 
@@ -110,6 +111,8 @@ public class ObjectsDataMapper {
     }
 
     public ServiceResponse ServiceToServiceResponse(ServiceEntity service){
+
+        List <Order> orders = service.getOrders();
        return  ServiceResponse
                .builder()
                .categoryId(service.getCategory().getId())
@@ -119,11 +122,12 @@ public class ObjectsDataMapper {
                .start(service.getStart())
                .name(service.getName())
                .id(service.getId())
-               .status(service.getStatus().toString())
-               .type(service.getType().toString())
-               .currentNumber(service.getOrders() ==null?0:service.getOrders().stream().filter(x->x.getOrderStatus() ==OrderStatus.PENDING).findFirst().orElse(null).getCurrentNumber())
+               .serviceStatus(service.getServiceStatus().toString())
+               .serviceType(service.getServiceType().toString())
+               .icon(service.getIcon()==null?"":service.getIcon())
+               .currentNumber(orders ==null?0:orders.stream().count()==0?0:orders.stream().filter(x->x.getOrderStatus() ==OrderStatus.PENDING).findFirst().get().getCurrentNumber())
                .endTime(service.getEndTime()==null?"":service.getEndTime().toString())
-               .pendingOrdersCount(service.getOrders() ==null?0:service.getOrders().stream().filter(x->x.getOrderStatus() ==OrderStatus.PENDING).count())
+               .pendingOrdersCount(orders ==null?0:orders.stream().filter(x->x.getOrderStatus() ==OrderStatus.PENDING).count())
                .build();
 
     }
@@ -133,6 +137,9 @@ public class ObjectsDataMapper {
         serviceEntity.setCode(serviceRequest.getCode());
         serviceEntity.setStart(serviceRequest.getStart());
         serviceEntity.setName(serviceRequest.getName());
+        serviceEntity.setIcon(serviceRequest.getIcon()==null?"":serviceRequest.getIcon());
+        serviceEntity.setServiceStatus(serviceRequest.getServiceStatus());
+        serviceEntity.setServiceType(serviceRequest.getServiceType());
         serviceEntity.setEndTime(LocalTime.parse(serviceRequest.getEndTime()));
         return serviceEntity;
     }

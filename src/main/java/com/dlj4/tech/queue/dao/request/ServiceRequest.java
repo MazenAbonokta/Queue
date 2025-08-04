@@ -19,6 +19,7 @@ public class ServiceRequest {
     private String name;
     private  Long categoryId;
     private  String endTime;
-    private ServiceStatus status;
-    private ServiceType type;
+    private  String icon;
+    private ServiceStatus serviceStatus;
+    private ServiceType serviceType;
 }
