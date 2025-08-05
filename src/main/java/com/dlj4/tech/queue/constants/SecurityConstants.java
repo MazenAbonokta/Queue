@@ -9,6 +9,7 @@ public class SecurityConstants {
             "/order/CreateOrder/**",
             "/order/getLastTickets/**",
             "/service/list/**",
+            "/service/getByStatusAndType/**",
             "/config/get-config/**",
             "/print/**",
             "/static/uploads/**",

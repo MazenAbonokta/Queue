@@ -1,6 +1,5 @@
 package com.dlj4.tech.queue.mapper;
 
-import com.dlj4.tech.queue.constants.ServiceStatus;
 import com.dlj4.tech.queue.constants.TransferRequestStatus;
 import com.dlj4.tech.queue.dao.request.*;
 import com.dlj4.tech.queue.dao.response.*;
@@ -12,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,6 +22,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Component
@@ -113,6 +112,13 @@ public class ObjectsDataMapper {
     public ServiceResponse ServiceToServiceResponse(ServiceEntity service){
 
         List <Order> orders = service.getOrders();
+        AtomicReference<Long> currentNumber= new AtomicReference<>(0L);
+        if(orders!=null &&orders.size()>0 ){
+            orders.stream().filter(x->x.getOrderStatus() ==OrderStatus.BOOKED).findFirst().ifPresent(x->{
+                currentNumber.set(x.getCurrentNumber());
+            });
+        }
+
        return  ServiceResponse
                .builder()
                .categoryId(service.getCategory().getId())
@@ -125,7 +131,7 @@ public class ObjectsDataMapper {
                .serviceStatus(service.getServiceStatus().toString())
                .serviceType(service.getServiceType().toString())
                .icon(service.getIcon()==null?"":service.getIcon())
-               .currentNumber(orders ==null?0:orders.stream().count()==0?0:orders.stream().filter(x->x.getOrderStatus() ==OrderStatus.PENDING).findFirst().get().getCurrentNumber())
+               .currentNumber(currentNumber.get())
                .endTime(service.getEndTime()==null?"":service.getEndTime().toString())
                .pendingOrdersCount(orders ==null?0:orders.stream().filter(x->x.getOrderStatus() ==OrderStatus.PENDING).count())
                .build();

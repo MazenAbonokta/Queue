@@ -1,5 +1,7 @@
 package com.dlj4.tech.queue.imp;
 
+import com.dlj4.tech.queue.constants.ServiceStatus;
+import com.dlj4.tech.queue.constants.ServiceType;
 import com.dlj4.tech.queue.dao.request.ServiceRequest;
 import com.dlj4.tech.queue.dao.response.ServiceResponse;
 import com.dlj4.tech.queue.entity.Category;
@@ -64,7 +66,7 @@ class ServiceServiceImpTest {
         serviceEntity.setCode("A");
         serviceEntity.setStart(1);
         serviceEntity.setEndTime(LocalTime.now());
-        serviceResponse  = new ServiceResponse(1L, "A", 1, 50, 1L, "Set", "test", "10:52", 1L);
+        serviceResponse  = new ServiceResponse(1L, "A", 1, 50, 1L, "Set", "test", "10:52", 1L, ServiceStatus.ACTIVE.toString(), ServiceType.MAIN.toString(),"",1L);
 
          serviceRequest = new ServiceRequest();
         serviceRequest.setName("test");

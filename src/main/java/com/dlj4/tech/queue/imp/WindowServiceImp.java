@@ -15,10 +15,9 @@ import com.dlj4.tech.queue.service.WindowRoleService;
 import com.dlj4.tech.queue.service.WindowService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import  java.util.function.Function;
-import java.util.ArrayList;
+
 import java.util.List;
-import java.util.Map;
+
 import java.util.Optional;
 import java.util.stream.Collectors;
 

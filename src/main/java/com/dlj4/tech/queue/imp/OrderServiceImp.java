@@ -23,6 +23,7 @@ import jakarta.transaction.Transactional;
 import javazoom.jl.player.Player;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
+import org.apache.logging.log4j.util.InternalException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -214,27 +215,37 @@ NotificationService notificationService;
 
     @Override
     public List<UserOrders> getOrdersByUserId(Long userId) {
-        User user= userRepository.findById(userId).get();
-        List<ServiceEntity> serviceEntities=  user.getWindow().getWindowRoles().stream().map(x->x.getService()
-        ).collect(Collectors.toList());
-        Set<Long> ServiceIds= serviceEntities.stream().map(x->x.getId()
-        ).collect(Collectors.toSet());
-        List<Order> orders = orderRepository.findOrdersByServiceIdsAndUserIdForToday(ServiceIds,userId);
-        List<UserOrders> userOrders = new ArrayList<>();
-        List<OrderResponse> orderResponses = orders.stream().map(orderObj-> objectsDataMapper.orderToOrderResponse(orderObj)).collect(Collectors.toList());
-        Map<Long, OrderResponse> orderResponseMap = orderResponses.stream()
-                .collect(Collectors.toMap(OrderResponse::getServiceId, orderResponse -> orderResponse));
+        try {
+            User user= userRepository.findById(userId).get();
+            List<ServiceEntity> serviceEntities=  user.getWindow().getWindowRoles().stream().map(x->x.getService()
+            ).collect(Collectors.toList());
+            Set<Long> ServiceIds= serviceEntities.stream().map(x->x.getId()
+            ).collect(Collectors.toSet());
+            List<Order> orders = orderRepository.findOrdersByServiceIdsAndUserIdForToday(ServiceIds,userId);
 
-        for (ServiceEntity service : serviceEntities)
-        {
-            OrderResponse orderResponse= orderResponseMap.get(service.getId());
-            userOrders.add(UserOrders.builder()
+            List<UserOrders> userOrders = new ArrayList<>();
+            List<OrderResponse> orderResponses = orders.stream().map(orderObj-> objectsDataMapper.orderToOrderResponse(orderObj)).collect(Collectors.toList());
+            Map<Long, OrderResponse> orderResponseMap = orderResponses.stream()
+                    .collect(Collectors.toMap(OrderResponse::getServiceId, orderResponse -> orderResponse));
+
+            for (ServiceEntity service : serviceEntities)
+            {
+                OrderResponse orderResponse= orderResponseMap.get(service.getId());
+
+                    userOrders.add(UserOrders.builder()
                             .serviceResponse(objectsDataMapper.ServiceToServiceResponse(service))
                             .currentOrder(orderResponse)
 
-                    .build());
+                            .build());
+
+            }
+            return userOrders;
+        }catch (Exception e){
+            log.error("getOrdersByUserId error:{}",e.getMessage());
+            e.printStackTrace();
+            throw new InternalException("service ["+userId +"is not Exist");
         }
-        return userOrders;
+
     }
 
     @Override
