@@ -2,6 +2,7 @@ package com.dlj4.tech.queue.dao.response;
 
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.http.HttpStatus;
 
@@ -9,19 +10,19 @@ import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
-
-public class ErrorResponseDto {
+@Builder
+public class ResponseDto {
 
 
         private  String apiPath;
 
 
-        private HttpStatus errorCode;
+        private HttpStatus code;
 
 
-        private  String errorMessage;
+        private  String message;
 
 
-        private LocalDateTime errorTime;
+        private LocalDateTime time;
 
 }

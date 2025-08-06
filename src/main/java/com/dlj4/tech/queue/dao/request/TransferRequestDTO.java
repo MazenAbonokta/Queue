@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class TransferRequestDTO {
-    Long orderId;
+
     Long userId;
     Long serviceId;
     Long windowId;

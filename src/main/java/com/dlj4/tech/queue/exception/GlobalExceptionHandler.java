@@ -1,6 +1,7 @@
 package com.dlj4.tech.queue.exception;
 
-import com.dlj4.tech.queue.dao.response.ErrorResponseDto;
+
+import com.dlj4.tech.queue.dao.response.ResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -13,48 +14,48 @@ import java.time.LocalDateTime;
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponseDto> handleGlobalException(Exception exception,
-                                                                  WebRequest webRequest) {
-        ErrorResponseDto errorResponseDTO = new ErrorResponseDto(
+    public ResponseEntity<ResponseDto> handleGlobalException(Exception exception,
+                                                             WebRequest webRequest) {
+        ResponseDto responseDto = new ResponseDto(
                 webRequest.getDescription(false),
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 exception.getMessage(),
                 LocalDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(errorResponseDTO);
+                .body(responseDto);
     }
     @ExceptionHandler(ResourceAlreadyExistException.class)
-    public ResponseEntity<ErrorResponseDto> ResourceAlreadyExistException(ResourceAlreadyExistException exception,
+    public ResponseEntity<ResponseDto> ResourceAlreadyExistException(ResourceAlreadyExistException exception,
                                                                             WebRequest webRequest) {
-        ErrorResponseDto errorResponseDTO = new ErrorResponseDto(
+        ResponseDto responseDto = new ResponseDto(
                 webRequest.getDescription(false),
                 HttpStatus.BAD_REQUEST,
                 exception.getMessage(),
                 LocalDateTime.now()
         );
-        return new ResponseEntity<>(errorResponseDTO, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponseDto> ResourceNotFoundException(ResourceNotFoundException exception,
+    public ResponseEntity<ResponseDto> ResourceNotFoundException(ResourceNotFoundException exception,
                                                                           WebRequest webRequest) {
-        ErrorResponseDto errorResponseDTO = new ErrorResponseDto(
+        ResponseDto responseDto = new ResponseDto(
                 webRequest.getDescription(false),
                 HttpStatus.BAD_REQUEST,
                 exception.getMessage(),
                 LocalDateTime.now()
         );
-        return new ResponseEntity<>(errorResponseDTO, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
     }
     @ExceptionHandler(AuthenticationFailedException.class)
-    public ResponseEntity<ErrorResponseDto> AuthenticationFailedException(AuthenticationFailedException exception,
+    public ResponseEntity<ResponseDto> AuthenticationFailedException(AuthenticationFailedException exception,
                                                                           WebRequest webRequest) {
-        ErrorResponseDto errorResponseDTO = new ErrorResponseDto(
+        ResponseDto responseDto = new ResponseDto(
                 webRequest.getDescription(false),
                 HttpStatus.UNAUTHORIZED,
                 exception.getMessage(),
                 LocalDateTime.now()
         );
-        return new ResponseEntity<>(errorResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(responseDto, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

@@ -25,16 +25,18 @@ public interface OrderService {
     public List<UserOrders> getOrdersByUserId(Long userId);
     public List<UserOrders> getOrdersByUserIdAndStatus(Long userId,OrderStatus orderStatus) ;
     public void reCallTicket(OrderDAO orderDAO);
-    public  OrderResponse getLastCalledOrderByUserId(Long userId);
-    public Long getCountByServiceIdAndStatus (Long serviceId,OrderStatus orderStatus);
+
     public List<MainScreenTicket> getLastTickets();
     public void   updateOldTickets();
     public void sendToArduino(String number, String ip);
-    public TransferResponse createTransferRequest(TransferRequestDTO transferRequest);
-    public  void transferOrder(Order order, ServiceEntity targetService, Window window, User user);
+    public TransferResponse createTransferRequest(Long OrderId,TransferRequestDTO transferRequest);
+    public Order transferOrder(Long OrderId,TransferRequestDTO transferRequest);
+
 
     public  boolean approveRequest(Long orderTransferId,Long userId);
     public  void rejectRequest(Long orderTransferId,Long userId);
+    public  OrderResponse getLastCalledOrderByUserId(Long userId);
+    public Long getCountByServiceIdAndStatus (Long serviceId,OrderStatus orderStatus);
 
 
 

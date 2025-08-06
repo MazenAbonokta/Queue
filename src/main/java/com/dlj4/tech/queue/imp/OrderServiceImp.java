@@ -733,7 +733,7 @@ updateOldTickets();
      * @throws ResourceNotFoundException if any referenced entities don't exist
      */
     @Override
-    public TransferResponse createTransferRequest(TransferRequestDTO transferRequest) {
+    public TransferResponse createTransferRequest(Long OrderId,TransferRequestDTO transferRequest) {
         // Validate input
         if (transferRequest == null) {
             log.error("Transfer request cannot be null");
@@ -743,8 +743,8 @@ updateOldTickets();
         if (transferRequest.getTargetServiceId() == null || 
             transferRequest.getWindowId() == null || 
             transferRequest.getUserId() == null || 
-            transferRequest.getServiceId() == null ||
-            transferRequest.getOrderId() == null) {
+            transferRequest.getServiceId() == null
+          ) {
             log.error("Transfer request has null fields");
             throw new IllegalArgumentException("Transfer request has null fields");
         }
@@ -755,10 +755,7 @@ updateOldTickets();
         User currentUser = getUserById(transferRequest.getUserId());
         ServiceEntity requestedService = getServiceEntityById(transferRequest.getServiceId());
         
-        // Handle hidden service type specially
-        if (targetService.getServiceType() == ServiceType.HIDDEN) {
-            handleHiddenServiceTransfer(transferRequest, targetService, window, currentUser, requestedService);
-        }
+
         
         // Create and save the transfer request entity
         TransferRequest transferRequestEntity = objectsDataMapper.transferRequestDtoToTransferRequest(
@@ -767,41 +764,47 @@ updateOldTickets();
                 window, 
                 targetService
         );
-        
+        Order order = getOrderById(OrderId);
+        transferRequestEntity.setOrder(order);
         transferRequestEntity = transferRequestRepository.save(transferRequestEntity);
         log.info("Created transfer request with ID: {}", transferRequestEntity.getId());
         
         // Map to response and return
         return objectsDataMapper.transferOrderToTransferResponseResponse(transferRequestEntity);
     }
-    
-    /**
-     * Helper method to handle transfer to a hidden service
-     */
-    private void handleHiddenServiceTransfer(
-            TransferRequestDTO transferRequest, 
-            ServiceEntity targetService, 
-            Window window, 
-            User currentUser, 
-            ServiceEntity requestedService) {
-        
+
+    @Override
+    public Order transferOrder(Long OrderId,TransferRequestDTO transferRequest) {
         try {
             // Get the order and transfer it
-            Order order = orderRepository.findById(transferRequest.getOrderId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Order with ID " + transferRequest.getOrderId() + " not found"));
-            
-            transferOrder(order, targetService, window, currentUser);
-            
+            Order order = orderRepository.findById(OrderId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Order with ID " + OrderId + " not found"));
+            ServiceEntity targetService = getServiceEntityById(transferRequest.getTargetServiceId());
+            Window window = getWindowById(transferRequest.getWindowId());
+            User currentUser = getUserById(transferRequest.getUserId());
+            ServiceEntity requestedService = getServiceEntityById(transferRequest.getServiceId());
+
+          order =  transfer(order, targetService, window, currentUser);
+
             // Update ticket counts for both services
             updateServiceTicketCount(targetService.getId());
             updateServiceTicketCount(requestedService.getId());
-            
             log.info("Transferred order {} to hidden service {}", order.getId(), targetService.getId());
+            return order;
+
         } catch (Exception e) {
             log.error("Failed to transfer order to hidden service: {}", e.getMessage());
             e.printStackTrace();
+            throw new InternalException("Failed to transfer order to hidden service");
         }
+        // Get all required entities
+
+
+
+
     }
+
+
     
     /**
      * Helper method to get a service entity by ID
@@ -846,8 +849,8 @@ updateOldTickets();
                 });
     }
 
-    @Override
-    public void  transferOrder (Order order, ServiceEntity targetService,Window window, User user) {
+
+    public Order  transfer (Order order, ServiceEntity targetService,Window window, User user) {
    try {
        order.setService(targetService);
        order.setUser(user);
@@ -855,8 +858,9 @@ updateOldTickets();
        orderRepository.save(order);
        createOrderActions(order,OrderStatus.TRANSFER);
        log.info("The Order with ID {} Has Been Transferred",order.getId());
+       return order;
    }catch (Exception e){
-
+        throw new InternalException("Failed to transfer order");
    }
 
 
@@ -878,7 +882,7 @@ updateOldTickets();
             Order order = transferRequest.getOrder();
 
         createOrderActions(order,OrderStatus.APPROVED);
-      transferOrder(order,transferRequest.getResponseService(),transferRequest.getResponseWindow(),transferRequest.getResponseUser());
+           order =  transfer(order,transferRequest.getResponseService(),transferRequest.getResponseWindow(),transferRequest.getResponseUser());
 
             updateServiceTicketCount(transferRequest.getRequestService().getId());
             updateServiceTicketCount(transferRequest.getResponseService().getId());
