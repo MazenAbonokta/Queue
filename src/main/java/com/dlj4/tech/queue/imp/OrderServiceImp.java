@@ -1,5 +1,6 @@
 package com.dlj4.tech.queue.imp;
 
+import com.dlj4.tech.queue.constants.ServiceType;
 import com.dlj4.tech.queue.constants.TransferRequestStatus;
 import com.dlj4.tech.queue.dao.request.OrderDAO;
 import com.dlj4.tech.queue.dao.request.TransferRequestDTO;
@@ -416,11 +417,37 @@ updateOldTickets();
 
     @Override
     public TransferResponse createTransferRequest(TransferRequestDTO transferRequest) {
-        Order order = orderRepository.findById(transferRequest.getOrderId()).get();
-        Window window= windowService.getWindowByID(transferRequest.getWindowId());
-        ServiceEntity requestedService= serviceService.getServiceById(transferRequest.getServiceId());
         ServiceEntity targetService= serviceService.getServiceById(transferRequest.getTargetServiceId());
+        Window window= windowService.getWindowByID(transferRequest.getWindowId());
         User currentUser= userRepository.findById(transferRequest.getUserId()).get();
+        ServiceEntity requestedService= serviceService.getServiceById(transferRequest.getServiceId());
+        if(targetService!=null && targetService.getServiceType()== ServiceType.HIDDEN){
+            Order order = orderRepository.findById(transferRequest.getOrderId()).get();
+           transferOrder(order,targetService,window,currentUser);
+            try {
+                notificationService.updateServiceTicketsCount(
+                        TicketsMessage.builder()
+                                .serviceId(targetService.getId())
+                                .ticketCount(orderRepository.countByOrderStatusAAndServiceId(OrderStatus.PENDING,targetService.getId()))
+                                .build()
+
+
+                );
+                notificationService.updateServiceTicketsCount(
+                        TicketsMessage.builder()
+                                .serviceId(requestedService.getId())
+                                .ticketCount(orderRepository.countByOrderStatusAAndServiceId(OrderStatus.PENDING,requestedService.getId()))
+                                .build()
+                );
+                log.info("Send to WebSocket");
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+       
+     
+       
+       
         TransferRequest  transferRequestEntity =objectsDataMapper.transferRequestDtoToTransferRequest(currentUser,requestedService,window,targetService);
 
         transferRequestEntity=transferRequestRepository.save(transferRequestEntity);
@@ -432,19 +459,18 @@ updateOldTickets();
     }
 
     @Override
-    public void transferOrder(Long orderId, Long windowId) {
-        Order order = orderRepository.findById(orderId).get();
-        Window window= windowService.getWindowByID(windowId);
+    public void  transferOrder (Order order, ServiceEntity targetService,Window window, User user) {
+   try {
+       order.setService(targetService);
+       order.setUser(user);
+       order.setWindow(window);
+       orderRepository.save(order);
+       createOrderActions(order,OrderStatus.TRANSFER);
+       log.info("The Order with ID {} Has Been Transferred",order.getId());
+   }catch (Exception e){
 
-        TransferRequest transferRequest= TransferRequest
-                .builder()
-                .createdAt(ZonedDateTime.now(ZoneId.of("UTC")))
-                .order(order)
-                .requestWindow(window)
-                .requestStatus(TransferRequestStatus.SEND)
-                .build();
-        transferRequestRepository.save(transferRequest);
-        createOrderActions(order,OrderStatus.TRANSFER);
+   }
+
 
     }
 

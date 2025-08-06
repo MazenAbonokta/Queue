@@ -8,6 +8,9 @@ import com.dlj4.tech.queue.dao.response.UserOrders;
 import com.dlj4.tech.queue.dto.MainScreenTicket;
 import com.dlj4.tech.queue.entity.Order;
 import com.dlj4.tech.queue.constants.OrderStatus;
+import com.dlj4.tech.queue.entity.ServiceEntity;
+import com.dlj4.tech.queue.entity.User;
+import com.dlj4.tech.queue.entity.Window;
 import org.apache.coyote.BadRequestException;
 
 import java.util.List;
@@ -28,7 +31,7 @@ public interface OrderService {
     public void   updateOldTickets();
     public void sendToArduino(String number, String ip);
     public TransferResponse createTransferRequest(TransferRequestDTO transferRequest);
-    public  void transferOrder(Long orderId,Long windowId);
+    public  void transferOrder(Order order, ServiceEntity targetService, Window window, User user);
 
     public  boolean approveRequest(Long orderTransferId,Long userId);
     public  void rejectRequest(Long orderTransferId,Long userId);
