@@ -596,9 +596,9 @@ public class OrderServiceImp implements OrderService {
      * @return The count of orders matching the criteria
      */
     @Override
-    public Long getCountByServiceIdAndStatus(Long serviceId, OrderStatus orderStatus) {
+    public Long getCountByServiceIdAndStatus(Long serviceId, OrderStatus[] orderStatus) {
         try {
-            Long count = orderRepository.countByOrderStatusAAndServiceId(orderStatus, serviceId);
+            Long count = orderRepository.countByOrderStatusInAndServiceId(orderStatus, serviceId);
             log.debug("Found {} orders with status {} for service ID {}", count, orderStatus, serviceId);
             return count;
         } catch (Exception e) {
@@ -740,7 +740,7 @@ updateOldTickets();
             throw new IllegalArgumentException("Transfer request cannot be null");
         }
         
-        if (transferRequest.getTargetServiceId() == null || 
+        if (transferRequest.getTargetServiceId() == null ||
             transferRequest.getWindowId() == null || 
             transferRequest.getUserId() == null || 
             transferRequest.getServiceId() == null
@@ -781,7 +781,12 @@ updateOldTickets();
                     .orElseThrow(() -> new ResourceNotFoundException("Order with ID " + OrderId + " not found"));
             ServiceEntity targetService = getServiceEntityById(transferRequest.getTargetServiceId());
             Window window = getWindowById(transferRequest.getWindowId());
-            User currentUser = getUserById(transferRequest.getUserId());
+            User currentUser= null;
+            if(transferRequest.getUserId()!=null)
+            {
+                 currentUser = getUserById(transferRequest.getUserId());
+            }
+
             ServiceEntity requestedService = getServiceEntityById(transferRequest.getServiceId());
 
           order =  transfer(order, targetService, window, currentUser);
@@ -855,6 +860,7 @@ updateOldTickets();
        order.setService(targetService);
        order.setUser(user);
        order.setWindow(window);
+       order.setOrderStatus(OrderStatus.TRANSFER);
        orderRepository.save(order);
        createOrderActions(order,OrderStatus.TRANSFER);
        log.info("The Order with ID {} Has Been Transferred",order.getId());
@@ -917,8 +923,8 @@ updateOldTickets();
             notificationService.updateServiceTicketsCount(
                     TicketsMessage.builder()
                             .serviceId(serviceId)
-                            .ticketCount(orderRepository.countByOrderStatusAAndServiceId(
-                                    OrderStatus.PENDING, 
+                            .ticketCount(orderRepository.countByOrderStatusInAndServiceId(
+                                    new OrderStatus[]{OrderStatus.PENDING, OrderStatus.TRANSFER},
                                     serviceId
                             ))
                             .build()

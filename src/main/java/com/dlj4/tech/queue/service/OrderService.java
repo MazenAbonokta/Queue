@@ -36,7 +36,7 @@ public interface OrderService {
     public  boolean approveRequest(Long orderTransferId,Long userId);
     public  void rejectRequest(Long orderTransferId,Long userId);
     public  OrderResponse getLastCalledOrderByUserId(Long userId);
-    public Long getCountByServiceIdAndStatus (Long serviceId,OrderStatus orderStatus);
+    public Long getCountByServiceIdAndStatus (Long serviceId,OrderStatus[] orderStatus);
 
 
 

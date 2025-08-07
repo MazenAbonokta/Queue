@@ -21,6 +21,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -118,6 +119,7 @@ public class ObjectsDataMapper {
                 currentNumber.set(x.getCurrentNumber());
             });
         }
+        List<OrderStatus> targetStatuses = Arrays.asList(OrderStatus.PENDING, OrderStatus.TRANSFER);
 
        return  ServiceResponse
                .builder()
@@ -133,7 +135,9 @@ public class ObjectsDataMapper {
                .icon(service.getIcon()==null?"":service.getIcon())
                .currentNumber(currentNumber.get())
                .endTime(service.getEndTime()==null?"":service.getEndTime().toString())
-               .pendingOrdersCount(orders ==null?0:orders.stream().filter(x->x.getOrderStatus() ==OrderStatus.PENDING).count())
+               .pendingOrdersCount(orders == null ? 0 : orders.stream()
+                       .filter(x -> targetStatuses.contains(x.getOrderStatus()))
+                       .count())
                .build();
 
     }

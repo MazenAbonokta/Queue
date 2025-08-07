@@ -39,8 +39,9 @@ public interface OrderRepository extends JpaRepository<Order,Long> {
                                                         @Param("orderStatus") OrderStatus orderStatus);
     List<Order> findOrdersByUserIdAndOrderStatus(long userId, OrderStatus orderStatus);
     Optional<Order> findTopByUserIdOrderByCallDateDesc(Long userId);
-    @Query("SELECT COUNT(u) FROM Order u WHERE u.orderStatus=?1 and u.service.id=?2")
-    long countByOrderStatusAAndServiceId(OrderStatus orderStatus,Long Service_Id);
+    @Query("SELECT COUNT(u) FROM Order u WHERE u.orderStatus IN ?1 AND u.service.id = ?2")
+    long countByOrderStatusInAndServiceId(OrderStatus[] orderStatusList, Long serviceId);
+
     List<Order> findByTodayAndCreatedAtBefore(boolean today, ZonedDateTime date);
 
 }

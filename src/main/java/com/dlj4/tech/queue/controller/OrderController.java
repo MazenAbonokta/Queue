@@ -80,7 +80,7 @@ public class OrderController {
     @PutMapping("/createTransferRequest/{id}")
     public ResponseEntity<ResponseDto> createTransferRequest(@PathVariable("id") Long id, @RequestBody TransferRequestDTO transferRequest){
         String Message="";
-        ServiceEntity service= serviceService.getServiceById(transferRequest.getServiceId());
+        ServiceEntity service= serviceService.getServiceById(transferRequest.getTargetServiceId());
         if(service!=null && service.getServiceType()== ServiceType.HIDDEN){
             orderService.transferOrder(id,transferRequest);
             Message="Order has been transferred";
