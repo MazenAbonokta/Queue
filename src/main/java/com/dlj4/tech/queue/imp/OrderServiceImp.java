@@ -41,6 +41,7 @@ import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -130,7 +131,15 @@ public class OrderServiceImp implements OrderService {
             log.error("Service Number Is Max for service: {}", fetchedService.getName());
             throw new BadRequestException("Service {" + fetchedService.getName() + "} Number Is Max");
         }
-        
+
+        LocalTime now = LocalTime.now();
+
+        if(LocalTime.now().isAfter(fetchedService.getEndTime()))
+        {
+            log.error("Service Number Is Max for service: {}", fetchedService.getName());
+            throw new BadRequestException("Service {" + fetchedService.getName() + "} Stopped after {"+fetchedService.getEndTime().toString()+"}");
+        }
+
         // Calculate the new number
         Long newCurrentNumber = currentMaxNumber == 0 ? 
                 fetchedService.getStart() : 
