@@ -13,17 +13,28 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(name = "token")
 public class Token {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
-    String token;
-    String refreshToken;
-    Date expiresAt;
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    User user;
-    Boolean isActive;
+    private Long id;
+    
+    @Column(name = "token", columnDefinition = "TEXT")
+    private String token;
+    
+    @Column(name = "refresh_token", columnDefinition = "TEXT")
+    private String refreshToken;
+    
+    @Column(name = "expires_at")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date expiresAt;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+    
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive;
 
     public Token(String jwt, String refreshToken, Date expiresAt, User user,Boolean isActive) {
         this.token = jwt;

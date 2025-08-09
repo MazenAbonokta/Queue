@@ -5,6 +5,7 @@ import java.util.List;
 public class SecurityConstants {
     public static final List<String> PERMITTED_URLS = List.of(
             "/auth/signin",
+            "/auth/refresh",
             "/ws/**",
             "/order/CreateOrder/**",
             "/order/getLastTickets/**",

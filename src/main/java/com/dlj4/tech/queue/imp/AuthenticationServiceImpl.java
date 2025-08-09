@@ -1,10 +1,10 @@
 package com.dlj4.tech.queue.imp;
+
 import com.dlj4.tech.queue.constants.UserStatus;
 import com.dlj4.tech.queue.dao.request.UserRequest;
 import com.dlj4.tech.queue.dao.response.UserResponse;
 import com.dlj4.tech.queue.entity.Token;
 import com.dlj4.tech.queue.entity.User;
-import com.dlj4.tech.queue.entity.UserActions;
 import com.dlj4.tech.queue.entity.Window;
 import com.dlj4.tech.queue.exception.AuthenticationFailedException;
 import com.dlj4.tech.queue.exception.RefreshTokenNotFoundException;
@@ -21,83 +21,172 @@ import com.dlj4.tech.queue.service.JwtService;
 import com.dlj4.tech.queue.service.UserActionService;
 import com.dlj4.tech.queue.service.WindowService;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @Service
-
+@RequiredArgsConstructor
+@Slf4j
 public class AuthenticationServiceImpl implements AuthenticationService {
-    @Autowired
-    private  UserRepository userRepository;
-    @Autowired
-    private  TokenRepository tokenRepository;
-    @Autowired
-    private  JwtService jwtService;
-    @Autowired
-    ObjectsDataMapper objectsDataMapper;
-    @Autowired
-    private  AuthenticationManager authenticationManager;
-    @Autowired
-    WindowService  windowService;
+    
+    private final UserRepository userRepository;
+    private final TokenRepository tokenRepository;
+    private final JwtService jwtService;
+    private final ObjectsDataMapper objectsDataMapper;
+    private final AuthenticationManager authenticationManager;
+    private final WindowService windowService;
+    private final UserActionService userActionService;
+    
     @Value("${token.access.token.expiration}")
     private long accessTokenExpiration;
-    @Autowired
-    private UserActionService userActionService;
     @Transactional
     @Override
     public JwtAuthenticationResponse signIn(SigningRequest request) {
-        try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+        // Validate input
+        if (request == null || !StringUtils.hasText(request.getUsername()) || !StringUtils.hasText(request.getPassword())) {
+            log.warn("Invalid sign-in request: missing username or password");
+            throw new AuthenticationFailedException("Username and password are required");
         }
-        catch (Exception e){
-            throw  new AuthenticationFailedException("Invalid username or password.");
+        
+        try {
+            // Authenticate user credentials
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername().trim(), request.getPassword()));
+                    
+            log.info("User authenticated successfully: {}", request.getUsername());
+            
+        } catch (BadCredentialsException e) {
+            log.warn("Authentication failed for user: {}", request.getUsername());
+            throw new AuthenticationFailedException("Invalid username or password");
+        } catch (AuthenticationException e) {
+            log.error("Authentication error for user {}: {}", request.getUsername(), e.getMessage());
+            throw new AuthenticationFailedException("Authentication failed");
         }
 
-        var user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid username or password."));
-        List<Token> activeTokens = tokenRepository.findAllByUserAndIsActive(user, true).orElse(Collections.emptyList());
-        if (!activeTokens.isEmpty()) {
-            for (Token activeToken : activeTokens) {
-                activeToken.setIsActive(false);
-            }
-            tokenRepository.saveAll(activeTokens);
-        }
-        var jwt = jwtService.generateToken(user);
-        var refreshToken = jwtService.generateRefreshToken(user);
-        var expiresAt = new Date(System.currentTimeMillis() + accessTokenExpiration);
-        tokenRepository.save(new Token(jwt, refreshToken, expiresAt, user, true));
+        // Retrieve user from database
+        User user = userRepository.findByUsername(request.getUsername().trim())
+                .orElseThrow(() -> {
+                    log.error("User not found after successful authentication: {}", request.getUsername());
+                    return new AuthenticationFailedException("User not found");
+                });
+
+        // Invalidate existing active tokens for security
+        invalidateExistingTokens(user);
+
+        // Generate new tokens
+        String jwt = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+        Date expiresAt = Date.from(Instant.now().plusMillis(accessTokenExpiration));
+        
+        // Save new token to database
+        Token token = new Token(jwt, refreshToken, expiresAt, user, true);
+        tokenRepository.save(token);
+        
+        // Log user action
         userActionService.AddNewAction(user.getUsername(), UserStatus.LOGIN);
-        return JwtAuthenticationResponse.builder().token(jwt).refreshToken(refreshToken).expiresAt(expiresAt).status("success")
-                .WindowId(user.getWindow()==null?0:user.getWindow().getId())
-                .WindowNumber(user.getWindow()==null?"0":user.getWindow().getWindowNumber())
+        
+        log.info("User signed in successfully: {}", user.getUsername());
+        
+        // Build response
+        return JwtAuthenticationResponse.builder()
+                .token(jwt)
+                .refreshToken(refreshToken)
+                .expiresAt(expiresAt)
+                .status("success")
+                .WindowId(user.getWindow() != null ? user.getWindow().getId() : 0)
+                .WindowNumber(user.getWindow() != null ? user.getWindow().getWindowNumber() : "0")
                 .Role(user.getRole().toString())
                 .build();
     }
+    
+    private void invalidateExistingTokens(User user) {
+        List<Token> activeTokens = tokenRepository.findAllByUserAndIsActive(user, true)
+                .orElse(Collections.emptyList());
+                
+        if (!activeTokens.isEmpty()) {
+            log.info("Invalidating {} existing tokens for user: {}", activeTokens.size(), user.getUsername());
+            activeTokens.forEach(token -> token.setIsActive(false));
+            tokenRepository.saveAll(activeTokens);
+        }
+    }
     @Override
     public JwtAuthenticationResponse refreshToken(RefreshRequest request) {
-        Token token = tokenRepository.findByRefreshToken(request.getRefreshToken()).orElseThrow(() -> new RefreshTokenNotFoundException(request.getRefreshToken()));
-        if (token.getExpiresAt().after(new Date()) && token.getIsActive()) {
-            var user = token.getUser();
-            var newAccessToken = jwtService.generateToken(user);
-            var newRefreshToken = jwtService.generateRefreshToken(user);
-            var expiresAt = new Date(System.currentTimeMillis() + accessTokenExpiration);
+        // Validate input
+        if (request == null || !StringUtils.hasText(request.getRefreshToken())) {
+            log.warn("Invalid refresh token request: missing refresh token");
+            throw new RefreshTokenNotFoundException("Refresh token is required");
+        }
+        
+        try {
+            // Find token in database
+            Token token = tokenRepository.findByRefreshToken(request.getRefreshToken())
+                    .orElseThrow(() -> {
+                        log.warn("Refresh token not found in database");
+                        return new RefreshTokenNotFoundException(request.getRefreshToken());
+                    });
+            
+            // Check if token is valid and active
+            if (!token.getIsActive()) {
+                log.warn("Refresh token is not active");
+                tokenRepository.delete(token);
+                throw new RefreshTokenNotFoundException("Token is not active");
+            }
+            
+            if (token.getExpiresAt().before(new Date())) {
+                log.warn("Refresh token has expired");
+                tokenRepository.delete(token);
+                throw new RefreshTokenNotFoundException("Token has expired");
+            }
+            
+            User user = token.getUser();
+            if (user == null) {
+                log.error("User not found for refresh token");
+                tokenRepository.delete(token);
+                throw new RefreshTokenNotFoundException("Invalid token");
+            }
+            
+            // Generate new tokens
+            String newAccessToken = jwtService.generateToken(user);
+            String newRefreshToken = jwtService.generateRefreshToken(user);
+            Date expiresAt = Date.from(Instant.now().plusMillis(accessTokenExpiration));
+            
+            // Invalidate old token and save new one
             token.setIsActive(false);
             tokenRepository.save(token);
-            tokenRepository.save(new Token(newAccessToken, newRefreshToken, expiresAt, user, true));
-            return new JwtAuthenticationResponse(newAccessToken, newRefreshToken, expiresAt,"success",user.getWindow().getId(),user.getWindow().getWindowNumber(),user.getRole().toString());
-
-        } else {
-            tokenRepository.delete(token);
-            return null;
+            
+            Token newToken = new Token(newAccessToken, newRefreshToken, expiresAt, user, true);
+            tokenRepository.save(newToken);
+            
+            log.info("Token refreshed successfully for user: {}", user.getUsername());
+            
+            return JwtAuthenticationResponse.builder()
+                    .token(newAccessToken)
+                    .refreshToken(newRefreshToken)
+                    .expiresAt(expiresAt)
+                    .status("success")
+                    .WindowId(user.getWindow() != null ? user.getWindow().getId() : 0)
+                    .WindowNumber(user.getWindow() != null ? user.getWindow().getWindowNumber() : "0")
+                    .Role(user.getRole().toString())
+                    .build();
+                    
+        } catch (RefreshTokenNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error during token refresh: ", e);
+            throw new RefreshTokenNotFoundException("Token refresh failed");
         }
     }
     @Override

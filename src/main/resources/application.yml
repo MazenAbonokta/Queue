@@ -9,32 +9,73 @@ spring:
     password: guest
     connection-timeout: 10s
 
-
   jpa:
     hibernate:
       ddl-auto: update
     database-platform: org.hibernate.dialect.MySQL8Dialect
     database: mysql
-    show-sql: true
+    show-sql: false # Set to false in production for security
     generate-ddl: true
+    properties:
+      hibernate:
+        format_sql: false
+        
   datasource:
     url: jdbc:mysql://localhost:3306/queue-test
     username: root
     password: p@ssw0rd
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
 server:
   port: 8083
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        secure: false # Set to true in production with HTTPS
+        same-site: strict
+  error:
+    include-stacktrace: never # Hide stack traces in production
+
+# Security Configuration
 token:
   signing:
-    key: 9a4f2c8d3b7a1e6f45c8a0b3f267d8b1d4e6f3c8a9d2b5f8e3a9c8b5f6v8a3d9
+    key: ${JWT_SIGNING_KEY:9a4f2c8d3b7a1e6f45c8a0b3f267d8b1d4e6f3c8a9d2b5f8e3a9c8b5f6v8a3d9} # Use environment variable in production
   refresh:
     token:
-      expiration: 1800000
+      expiration: 86400000 # 24 hours in milliseconds
     signing:
-      key: 9a4f2c8d3b7a1e6f45c8a0b3f267d8b1d4e6f3c8a9d2b5f8e3a9c8b5f6v8a3d9
+      key: ${JWT_REFRESH_SIGNING_KEY:b2f8d3c7a1e9f45c8a0b3f267d8b1d4e6f3c8a9d2b5f8e3a9c8b5f6v8a3d7x1} # Different key for refresh tokens
   access:
     token:
-      expiration: 1800000 # Set the expiration time for the access token in milliseconds (e.g., 1 hour)
+      expiration: 3600000 # 1 hour in milliseconds
 
+# CORS Configuration
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://127.0.0.1:4200}
+    allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+    allowed-headers: ${CORS_ALLOWED_HEADERS:Authorization,Content-Type,Accept,Origin,X-Requested-With}
+    exposed-headers: ${CORS_EXPOSED_HEADERS:Authorization}
+    allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
+    max-age: ${CORS_MAX_AGE:3600}
+
+# Queue Configuration
 queue:
   name: ticket-queue
+
+# Logging Configuration
+logging:
+  level:
+    com.dlj4.tech.queue: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

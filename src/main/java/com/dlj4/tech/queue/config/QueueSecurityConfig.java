@@ -1,7 +1,6 @@
 package com.dlj4.tech.queue.config;
 
-import com.dlj4.tech.queue.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -18,35 +17,58 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 
 @Configuration
 @EnableWebSecurity
-
+@RequiredArgsConstructor
 public class QueueSecurityConfig {
-    @Autowired
-    AuthenticationProvider authenticationProvider;
-    @Autowired
-    private  JwtAuthenticationFilter jwtAuthenticationFilter;
-    @Autowired
-
-    private  UserService userService;
-    @Autowired CustomCorsConfiguration customCorsConfiguration;
+    
+    private final AuthenticationProvider authenticationProvider;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomCorsConfiguration customCorsConfiguration;
+    
     @Bean
-    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity httpSecurity)   throws  Exception{
-        httpSecurity.csrf(AbstractHttpConfigurer::disable)
-                .cors(c -> c.configurationSource(customCorsConfiguration))
-                .authorizeHttpRequests(request ->
-                        request.requestMatchers( PERMITTED_URLS.toArray(new String[0])).permitAll()
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        return httpSecurity
+                // Disable CSRF for stateless REST API
+                .csrf(AbstractHttpConfigurer::disable)
+                
+                // Configure CORS
+                .cors(cors -> cors.configurationSource(customCorsConfiguration))
+                
+                // Configure security headers
+                .headers(headers -> headers
+                        .frameOptions(frameOptions -> frameOptions.deny())
+                        .contentTypeOptions(contentTypeOptions -> {})
+                        .httpStrictTransportSecurity(hstsConfig -> hstsConfig
+                                .maxAgeInSeconds(31536000)
+                                .includeSubDomains(true)
+                        )
+                )
+                
+                // Configure authorization rules
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(PERMITTED_URLS.toArray(new String[0])).permitAll()
                         .anyRequest().authenticated()
                 )
-                .exceptionHandling(exception -> {
-                    exception.authenticationEntryPoint(
-                            new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)
-                    );
-                })
-                .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
-
-                .authenticationProvider(authenticationProvider).addFilterBefore(
-                        jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return httpSecurity.build();
+                
+                // Configure exception handling
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpStatus.FORBIDDEN.value());
+                            response.getWriter().write("Access Denied");
+                        })
+                )
+                
+                // Configure session management
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(STATELESS)
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false)
+                )
+                
+                // Add authentication provider and JWT filter
+                .authenticationProvider(authenticationProvider)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                
+                .build();
     }
-
 }

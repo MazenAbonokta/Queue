@@ -6,27 +6,29 @@ import com.dlj4.tech.queue.exception.TokenNotFoundException;
 import com.dlj4.tech.queue.repository.TokenRepository;
 import com.dlj4.tech.queue.service.JwtService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 @Service
-
+@RequiredArgsConstructor
+@Slf4j
 public class JwtServiceImpl implements JwtService {
-    @Autowired
-    private  TokenRepository tokenRepository;
+    
+    private final TokenRepository tokenRepository;
 
     @Value("${token.signing.key}")
     private String jwtSigningKey;
@@ -42,25 +44,69 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public String extractUserName(String token) {
-        return extractClaim(token, Claims::getSubject);
+        try {
+            return extractClaim(token, Claims::getSubject);
+        } catch (JwtException e) {
+            log.error("Error extracting username from JWT token: ", e);
+            return null;
+        }
     }
 
     @Override
     public String generateToken(UserDetails userDetails) {
-
+        if (userDetails == null || userDetails.getUsername() == null) {
+            throw new IllegalArgumentException("UserDetails cannot be null or have null username");
+        }
         return generateToken(getClaims(userDetails), userDetails, accessTokenExpiration);
     }
 
     @Override
     public String generateRefreshToken(UserDetails userDetails) {
-        return "REFRESH_" + generateToken(getClaims(userDetails), userDetails, refreshTokenExpiration, jwtRefreshSigningKey);
+        if (userDetails == null || userDetails.getUsername() == null) {
+            throw new IllegalArgumentException("UserDetails cannot be null or have null username");
+        }
+        return "REFRESH_" + generateToken(getBasicClaims(userDetails), userDetails, refreshTokenExpiration, jwtRefreshSigningKey);
     }
 
     @Override
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String userName = extractUserName(token);
-        Token tokenFromDb = tokenRepository.findByToken(token).orElseThrow(() -> new TokenNotFoundException(token));
-        return (tokenFromDb.getIsActive() && userName.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        try {
+            if (token == null || userDetails == null) {
+                return false;
+            }
+            
+            final String userName = extractUserName(token);
+            if (userName == null || !userName.equals(userDetails.getUsername())) {
+                return false;
+            }
+            
+            // Check if token exists in database and is active
+            Token tokenFromDb = tokenRepository.findByToken(token)
+                    .orElseThrow(() -> new TokenNotFoundException(token));
+                    
+            if (!tokenFromDb.getIsActive()) {
+                log.warn("Token is not active in database");
+                return false;
+            }
+            
+            // Check token expiration
+            if (isTokenExpired(token)) {
+                log.warn("Token has expired");
+                return false;
+            }
+            
+            return true;
+            
+        } catch (TokenNotFoundException e) {
+            log.warn("Token not found in database: {}", token);
+            return false;
+        } catch (JwtException e) {
+            log.error("Error validating JWT token: ", e);
+            return false;
+        } catch (Exception e) {
+            log.error("Unexpected error validating token: ", e);
+            return false;
+        }
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolvers) {
@@ -73,14 +119,30 @@ public class JwtServiceImpl implements JwtService {
     }
 
     private String generateToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration, String signingKey) {
-        return Jwts.builder().setClaims(extraClaims).setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSigningKey(signingKey), SignatureAlgorithm.HS256).compact();
+        try {
+            Instant now = Instant.now();
+            Instant expirationTime = now.plusMillis(expiration);
+            
+            return Jwts.builder()
+                    .setClaims(extraClaims)
+                    .setSubject(userDetails.getUsername())
+                    .setIssuedAt(Date.from(now))
+                    .setExpiration(Date.from(expirationTime))
+                    .signWith(getSigningKey(signingKey))
+                    .compact();
+        } catch (Exception e) {
+            log.error("Error generating JWT token: ", e);
+            throw new RuntimeException("Failed to generate JWT token", e);
+        }
     }
 
     private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+        try {
+            return extractExpiration(token).before(new Date());
+        } catch (JwtException e) {
+            log.error("Error checking token expiration: ", e);
+            return true; // Treat malformed tokens as expired
+        }
     }
 
     private Date extractExpiration(String token) {
@@ -88,26 +150,60 @@ public class JwtServiceImpl implements JwtService {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder().setSigningKey(getSigningKey(jwtSigningKey)).build().parseClaimsJws(token)
-                .getBody();
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey(jwtSigningKey))
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (JwtException e) {
+            log.error("Error parsing JWT claims: ", e);
+            throw e;
+        }
     }
 
-    private Key getSigningKey(String key) {
-        byte[] keyBytes = Decoders.BASE64.decode(key);
-        return Keys.hmacShaKeyFor(keyBytes);
+    private SecretKey getSigningKey(String key) {
+        try {
+            byte[] keyBytes = Decoders.BASE64.decode(key);
+            return Keys.hmacShaKeyFor(keyBytes);
+        } catch (Exception e) {
+            log.error("Error creating signing key: ", e);
+            throw new RuntimeException("Invalid signing key", e);
+        }
     }
 
-    private  Map<String,Object> getClaims(UserDetails userDetails) {
+    private Map<String, Object> getClaims(UserDetails userDetails) {
+        if (!(userDetails instanceof User)) {
+            throw new IllegalArgumentException("UserDetails must be an instance of User");
+        }
+        
         User user = (User) userDetails;
         Map<String, Object> claims = new HashMap<>();
+        
+        // Add basic user information
+        claims.put("username", user.getUsername());
+        claims.put("fullName", user.getName());
+        claims.put("role", user.getRole().toString());
+        
+        // Add window information if available
         if (user.getWindow() != null) {
-            claims.put("windowId", user.getWindow().getId());           // Add window ID
-            claims.put("windowNumber", user.getWindow()==null?"0":user.getWindow().getWindowNumber());
-            claims.put("username", user.getUsername());           // Add window ID
-            claims.put("fullName", user.getName());  // Add window number
+            claims.put("windowId", user.getWindow().getId());
+            claims.put("windowNumber", user.getWindow().getWindowNumber());
+        } else {
+            claims.put("windowId", 0);
+            claims.put("windowNumber", "0");
         }
-        claims.put("role", user.getRole());
-
+        
+        // Add issued at timestamp for additional security
+        claims.put("iat", Instant.now().getEpochSecond());
+        
+        return claims;
+    }
+    
+    private Map<String, Object> getBasicClaims(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("username", userDetails.getUsername());
+        claims.put("iat", Instant.now().getEpochSecond());
         return claims;
     }
 }
