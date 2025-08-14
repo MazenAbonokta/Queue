@@ -21,4 +21,20 @@ public interface OrderActionsRepository extends JpaRepository<OrderAction,Long> 
             @Param("statuses") List<String> statuses,
             @Param("startOfDay") ZonedDateTime startOfDay,
             @Param("endOfDay") ZonedDateTime endOfDay);
+
+    // Fetch all OrderActions with their associated Orders and related entities
+    @Query("SELECT oa FROM OrderAction oa " +
+           "LEFT JOIN FETCH oa.order o " +
+           "LEFT JOIN FETCH o.service s " +
+           "LEFT JOIN FETCH o.window w " +
+           "ORDER BY oa.createdAt DESC")
+    List<OrderAction> findAllWithOrderDetails();
+
+    // Fetch recent OrderActions with their associated Orders
+    @Query("SELECT oa FROM OrderAction oa " +
+           "LEFT JOIN FETCH oa.order o " +
+           "LEFT JOIN FETCH o.service s " +
+           "LEFT JOIN FETCH o.window w " +
+           "ORDER BY oa.createdAt DESC")
+    List<OrderAction> findRecentWithOrderDetails(org.springframework.data.domain.Pageable pageable);
 }

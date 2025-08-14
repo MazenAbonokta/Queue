@@ -1,0 +1,228 @@
+package com.dlj4.tech.queue.controller;
+
+import com.dlj4.tech.queue.dao.response.*;
+import com.dlj4.tech.queue.service.DashboardService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/dashboard")
+@CrossOrigin(origins = {"http://localhost:4200", "http://127.0.0.1:4200"}, 
+             allowedHeaders = {"Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With", "x-access-token"},
+             allowCredentials = "true")
+public class DashboardController {
+
+    @Autowired
+    private DashboardService dashboardService;
+
+    // ==================== SUMMARY STATISTICS ====================
+    
+    @GetMapping("/summary")
+    public ResponseEntity<DashboardSummaryResponse> getDashboardSummary() {
+        DashboardSummaryResponse summary = dashboardService.getDashboardSummary();
+        return new ResponseEntity<>(summary, HttpStatus.OK);
+    }
+
+    // ==================== ALL ENTITIES LISTS ====================
+    
+    @GetMapping("/categories")
+    public ResponseEntity<List<CategoryResponse>> getAllCategories() {
+        List<CategoryResponse> categories = dashboardService.getAllCategories();
+        return new ResponseEntity<>(categories, HttpStatus.OK);
+    }
+
+    @GetMapping("/services")
+    public ResponseEntity<List<ServiceResponse>> getAllServices() {
+        List<ServiceResponse> services = dashboardService.getAllServices();
+        return new ResponseEntity<>(services, HttpStatus.OK);
+    }
+
+    @GetMapping("/windows")
+    public ResponseEntity<List<WindowResponse>> getAllWindows() {
+        List<WindowResponse> windows = dashboardService.getAllWindows();
+        return new ResponseEntity<>(windows, HttpStatus.OK);
+    }
+
+    @GetMapping("/users")
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        List<UserResponse> users = dashboardService.getAllUsers();
+        return new ResponseEntity<>(users, HttpStatus.OK);
+    }
+
+    @GetMapping("/orders")
+    public ResponseEntity<List<OrderResponse>> getAllOrders() {
+        List<OrderResponse> orders = dashboardService.getAllOrders();
+        return new ResponseEntity<>(orders, HttpStatus.OK);
+    }
+
+    @GetMapping("/transfer-requests")
+    public ResponseEntity<List<TransferResponse>> getAllTransferRequests() {
+        List<TransferResponse> transfers = dashboardService.getAllTransferRequests();
+        return new ResponseEntity<>(transfers, HttpStatus.OK);
+    }
+
+    @GetMapping("/window-roles")
+    public ResponseEntity<List<WindowRoleResponse>> getAllWindowRoles() {
+        List<WindowRoleResponse> windowRoles = dashboardService.getAllWindowRoles();
+        return new ResponseEntity<>(windowRoles, HttpStatus.OK);
+    }
+
+    @GetMapping("/order-actions")
+    public ResponseEntity<List<OrderActionResponse>> getAllOrderActions() {
+        List<OrderActionResponse> orderActions = dashboardService.getAllOrderActions();
+        return new ResponseEntity<>(orderActions, HttpStatus.OK);
+    }
+
+    @GetMapping("/order-archives")
+    public ResponseEntity<List<OrderArchiveResponse>> getAllOrderArchives() {
+        List<OrderArchiveResponse> orderArchives = dashboardService.getAllOrderArchives();
+        return new ResponseEntity<>(orderArchives, HttpStatus.OK);
+    }
+
+    @GetMapping("/user-actions")
+    public ResponseEntity<List<UserActionsResponse>> getAllUserActions() {
+        List<UserActionsResponse> userActions = dashboardService.getAllUserActions();
+        return new ResponseEntity<>(userActions, HttpStatus.OK);
+    }
+
+    // ==================== FILTERED LISTS ====================
+    
+    @GetMapping("/orders/status/{status}")
+    public ResponseEntity<List<OrderResponse>> getOrdersByStatus(@PathVariable String status) {
+        List<OrderResponse> orders = dashboardService.getOrdersByStatus(status);
+        return new ResponseEntity<>(orders, HttpStatus.OK);
+    }
+
+    @GetMapping("/services/status/{status}")
+    public ResponseEntity<List<ServiceResponse>> getServicesByStatus(@PathVariable String status) {
+        List<ServiceResponse> services = dashboardService.getServicesByStatus(status);
+        return new ResponseEntity<>(services, HttpStatus.OK);
+    }
+
+    @GetMapping("/users/role/{role}")
+    public ResponseEntity<List<UserResponse>> getUsersByRole(@PathVariable String role) {
+        List<UserResponse> users = dashboardService.getUsersByRole(role);
+        return new ResponseEntity<>(users, HttpStatus.OK);
+    }
+
+    @GetMapping("/transfer-requests/status/{status}")
+    public ResponseEntity<List<TransferResponse>> getTransferRequestsByStatus(@PathVariable String status) {
+        List<TransferResponse> transfers = dashboardService.getTransferRequestsByStatus(status);
+        return new ResponseEntity<>(transfers, HttpStatus.OK);
+    }
+
+    // ==================== RECENT ACTIVITY ====================
+    
+    @GetMapping("/recent/orders")
+    public ResponseEntity<List<OrderResponse>> getRecentOrders(@RequestParam(defaultValue = "10") int limit) {
+        List<OrderResponse> orders = dashboardService.getRecentOrders(limit);
+        return new ResponseEntity<>(orders, HttpStatus.OK);
+    }
+
+    @GetMapping("/recent/order-actions")
+    public ResponseEntity<List<OrderActionResponse>> getRecentOrderActions(@RequestParam(defaultValue = "10") int limit) {
+        List<OrderActionResponse> actions = dashboardService.getRecentOrderActions(limit);
+        return new ResponseEntity<>(actions, HttpStatus.OK);
+    }
+
+    @GetMapping("/recent/user-actions")
+    public ResponseEntity<List<UserActionsResponse>> getRecentUserActions(@RequestParam(defaultValue = "10") int limit) {
+        List<UserActionsResponse> actions = dashboardService.getRecentUserActions(limit);
+        return new ResponseEntity<>(actions, HttpStatus.OK);
+    }
+
+    @GetMapping("/recent/transfer-requests")
+    public ResponseEntity<List<TransferResponse>> getRecentTransferRequests(@RequestParam(defaultValue = "10") int limit) {
+        List<TransferResponse> transfers = dashboardService.getRecentTransferRequests(limit);
+        return new ResponseEntity<>(transfers, HttpStatus.OK);
+    }
+
+    // ==================== ANALYTICS & STATISTICS ====================
+    
+    @GetMapping("/analytics/orders-by-service")
+    public ResponseEntity<List<Object[]>> getOrdersByServiceStats() {
+        List<Object[]> stats = dashboardService.getOrdersByServiceStats();
+        return new ResponseEntity<>(stats, HttpStatus.OK);
+    }
+
+    @GetMapping("/analytics/orders-by-window")
+    public ResponseEntity<List<Object[]>> getOrdersByWindowStats() {
+        List<Object[]> stats = dashboardService.getOrdersByWindowStats();
+        return new ResponseEntity<>(stats, HttpStatus.OK);
+    }
+
+    @GetMapping("/analytics/orders-by-date")
+    public ResponseEntity<List<Object[]>> getOrdersByDateStats(@RequestParam(defaultValue = "7") int days) {
+        List<Object[]> stats = dashboardService.getOrdersByDateStats(days);
+        return new ResponseEntity<>(stats, HttpStatus.OK);
+    }
+
+    // ==================== QUEUE MANAGEMENT ====================
+    
+    @GetMapping("/queue/current")
+    public ResponseEntity<List<OrderResponse>> getCurrentQueue() {
+        List<OrderResponse> queue = dashboardService.getCurrentQueue();
+        return new ResponseEntity<>(queue, HttpStatus.OK);
+    }
+
+    @GetMapping("/queue/pending")
+    public ResponseEntity<List<OrderResponse>> getPendingOrders() {
+        List<OrderResponse> orders = dashboardService.getPendingOrders();
+        return new ResponseEntity<>(orders, HttpStatus.OK);
+    }
+
+    @GetMapping("/queue/in-progress")
+    public ResponseEntity<List<OrderResponse>> getOrdersInProgress() {
+        List<OrderResponse> orders = dashboardService.getOrdersInProgress();
+        return new ResponseEntity<>(orders, HttpStatus.OK);
+    }
+
+    // ==================== ENTITY COUNTS ====================
+    
+    @GetMapping("/count/categories")
+    public ResponseEntity<Long> getCategoriesCount() {
+        long count = dashboardService.getAllCategories().size();
+        return new ResponseEntity<>(count, HttpStatus.OK);
+    }
+
+    @GetMapping("/count/services")
+    public ResponseEntity<Long> getServicesCount() {
+        long count = dashboardService.getAllServices().size();
+        return new ResponseEntity<>(count, HttpStatus.OK);
+    }
+
+    @GetMapping("/count/windows")
+    public ResponseEntity<Long> getWindowsCount() {
+        long count = dashboardService.getAllWindows().size();
+        return new ResponseEntity<>(count, HttpStatus.OK);
+    }
+
+    @GetMapping("/count/users")
+    public ResponseEntity<Long> getUsersCount() {
+        long count = dashboardService.getAllUsers().size();
+        return new ResponseEntity<>(count, HttpStatus.OK);
+    }
+
+    @GetMapping("/count/orders")
+    public ResponseEntity<Long> getOrdersCount() {
+        long count = dashboardService.getAllOrders().size();
+        return new ResponseEntity<>(count, HttpStatus.OK);
+    }
+
+    @GetMapping("/count/transfer-requests")
+    public ResponseEntity<Long> getTransferRequestsCount() {
+        long count = dashboardService.getAllTransferRequests().size();
+        return new ResponseEntity<>(count, HttpStatus.OK);
+    }
+
+    // ==================== HEALTH CHECK ====================
+    
+    @GetMapping("/health")
+    public ResponseEntity<String> healthCheck() {
+        return new ResponseEntity<>("Dashboard API is running", HttpStatus.OK);
+    }
+}

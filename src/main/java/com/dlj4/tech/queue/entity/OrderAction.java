@@ -21,7 +21,7 @@ public class OrderAction {
     private ZonedDateTime createdAt;
 
     private String orderStatus;
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
     Order order;
 

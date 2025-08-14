@@ -137,7 +137,10 @@ public class OrderServiceImp implements OrderService {
         if(LocalTime.now().isAfter(fetchedService.getEndTime()))
         {
             log.error("Service Number Is Max for service: {}", fetchedService.getName());
-            throw new BadRequestException("Service {" + fetchedService.getName() + "} Stopped after {"+fetchedService.getEndTime().toString()+"}");
+            throw new BadRequestException(
+                    "عذراً لايمكن طلب رقم جديد لتوقف خدمة " + fetchedService.getName() + " بعد الساعة " + fetchedService.getEndTime().toString() + ""
+            );
+
         }
 
         // Calculate the new number

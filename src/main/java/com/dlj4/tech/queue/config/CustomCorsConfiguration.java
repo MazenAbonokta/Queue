@@ -20,7 +20,7 @@ public class CustomCorsConfiguration implements CorsConfigurationSource {
     @Value("${app.cors.allowed-methods:GET,POST,PUT,DELETE,OPTIONS}")
     private String allowedMethods;
     
-    @Value("${app.cors.allowed-headers:Authorization,Content-Type,Accept,Origin,X-Requested-With}")
+    @Value("${app.cors.allowed-headers:Authorization,Content-Type,Accept,Origin,X-Requested-With,x-access-token}")
     private String allowedHeaders;
     
     @Value("${app.cors.exposed-headers:Authorization}")
