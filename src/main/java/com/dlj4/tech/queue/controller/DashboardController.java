@@ -6,11 +6,39 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Dashboard Analytics Controller
+ * 
+ * Provides comprehensive dashboard endpoints for real-time analytics, statistics,
+ * and queue management data. Supports Angular frontend with CORS configuration.
+ * 
+ * Features:
+ * - Real-time queue statistics and summaries
+ * - Entity management (Categories, Services, Windows, Users, Orders)
+ * - Recent activity tracking and analytics
+ * - Transfer request management
+ * - Live queue monitoring
+ * 
+ * Base URL: /dashboard
+ * 
+ * @author Queue Management System
+ * @version 1.0
+ */
+@Tag(name = "Dashboard Analytics", description = "Real-time analytics, statistics, and queue management data for dashboard interfaces")
 @RestController
 @RequestMapping("/dashboard")
 @CrossOrigin(origins = {"http://localhost:4200", "http://127.0.0.1:4200"}, 
@@ -23,6 +51,31 @@ public class DashboardController {
 
     // ==================== SUMMARY STATISTICS ====================
     
+    @Operation(
+            summary = "Get Dashboard Summary",
+            description = "Retrieve comprehensive dashboard statistics including order counts, service status, and queue metrics",
+            security = {@SecurityRequirement(name = "JWT Authentication"), @SecurityRequirement(name = "Custom Token Authentication")}
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Dashboard summary retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = DashboardSummaryResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "totalOrders": 25,
+                                      "todayOrders": 18,
+                                      "pendingOrders": 7,
+                                      "completedOrders": 5,
+                                      "cancelledOrders": 2,
+                                      "inProgressOrders": 3,
+                                      "totalServices": 10,
+                                      "activeServices": 9,
+                                      "totalWindows": 8,
+                                      "totalUsers": 10,
+                                      "totalCategories": 5
+                                    }"""))),
+            @ApiResponse(responseCode = "401", description = "Authentication required"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @GetMapping("/summary")
     public ResponseEntity<DashboardSummaryResponse> getDashboardSummary() {
         DashboardSummaryResponse summary = dashboardService.getDashboardSummary();

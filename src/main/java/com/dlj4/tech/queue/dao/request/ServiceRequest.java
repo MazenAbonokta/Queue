@@ -2,21 +2,29 @@ package com.dlj4.tech.queue.dao.request;
 
 import com.dlj4.tech.queue.constants.ServiceStatus;
 import com.dlj4.tech.queue.constants.ServiceType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Schema(description = "Service creation/update request with comprehensive validation and range checks")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 public class ServiceRequest {
     
+    @Schema(description = "Service ID for updates", example = "1", minimum = "1")
     @Positive(message = "Service ID must be a positive number")
     private Long id;
     
+    @Schema(description = "Unique service code", 
+            example = "PASS", 
+            minLength = 2, 
+            maxLength = 10,
+            pattern = "^[A-Z0-9]+$")
     @NotBlank(message = "Service code is required and cannot be empty")
     @Size(min = 2, max = 10, message = "Service code must be between 2 and 10 characters")
     @Pattern(regexp = "^[A-Z0-9]+$", message = "Service code can only contain uppercase letters and numbers (e.g., PASS, ID01)")

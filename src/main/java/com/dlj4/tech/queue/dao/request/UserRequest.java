@@ -1,25 +1,41 @@
 package com.dlj4.tech.queue.dao.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Schema(description = "User creation/update request with comprehensive validation")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 public class UserRequest {
     
+    @Schema(description = "Unique username for the user", 
+            example = "john_doe123", 
+            minLength = 3, 
+            maxLength = 50,
+            pattern = "^[a-zA-Z0-9_.-]+$")
     @NotBlank(message = "Username is required and cannot be empty")
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     @Pattern(regexp = "^[a-zA-Z0-9_.-]+$", message = "Username can only contain letters, numbers, dots, underscores, and hyphens")
     private String username;
     
+    @Schema(description = "User password with security requirements", 
+            example = "MySecure123", 
+            minLength = 6, 
+            maxLength = 100,
+            pattern = "^(?=.*[a-zA-Z])(?=.*\\d).*$")
     @NotBlank(message = "Password is required and cannot be empty")
     @Size(min = 6, max = 100, message = "Password must be between 6 and 100 characters")
     @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d).*$", message = "Password must contain at least one letter and one number")
     private String password;
     
+    @Schema(description = "Valid email address for the user", 
+            example = "john.doe@example.com", 
+            maxLength = 100,
+            format = "email")
     @NotBlank(message = "Email is required and cannot be empty")
     @Email(message = "Please provide a valid email address (e.g., user@example.com)")
     @Size(max = 100, message = "Email cannot exceed 100 characters")
