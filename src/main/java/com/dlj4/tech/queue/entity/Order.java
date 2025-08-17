@@ -28,9 +28,11 @@ public class Order {
     private ZonedDateTime callDate;
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
-        private boolean today=true;
+    @Builder.Default
+    private boolean today = true;
 
-private   String code;
+    private String code;
+    @Builder.Default
     private boolean deleted = Boolean.FALSE;
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "window_id")

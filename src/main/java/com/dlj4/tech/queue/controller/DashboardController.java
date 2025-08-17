@@ -7,7 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/dashboard")
@@ -224,5 +226,32 @@ public class DashboardController {
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
         return new ResponseEntity<>("Dashboard API is running", HttpStatus.OK);
+    }
+
+    // ==================== DATA VERIFICATION ====================
+    
+    @GetMapping("/data-status")
+    public ResponseEntity<Object> getDataStatus() {
+        Map<String, Object> dataStatus = new HashMap<>();
+        
+        // Count all entities
+        dataStatus.put("categoriesCount", dashboardService.getAllCategories().size());
+        dataStatus.put("servicesCount", dashboardService.getAllServices().size());
+        dataStatus.put("windowsCount", dashboardService.getAllWindows().size());
+        dataStatus.put("usersCount", dashboardService.getAllUsers().size());
+        dataStatus.put("ordersCount", dashboardService.getAllOrders().size());
+        dataStatus.put("transferRequestsCount", dashboardService.getAllTransferRequests().size());
+        dataStatus.put("orderActionsCount", dashboardService.getAllOrderActions().size());
+        dataStatus.put("userActionsCount", dashboardService.getAllUserActions().size());
+        
+        // Recent activity counts
+        dataStatus.put("recentOrdersCount", dashboardService.getRecentOrders(50).size());
+        dataStatus.put("pendingOrdersCount", dashboardService.getPendingOrders().size());
+        dataStatus.put("currentQueueCount", dashboardService.getCurrentQueue().size());
+        
+        dataStatus.put("status", "Rich data loaded successfully");
+        dataStatus.put("timestamp", java.time.LocalDateTime.now());
+        
+        return new ResponseEntity<>(dataStatus, HttpStatus.OK);
     }
 }

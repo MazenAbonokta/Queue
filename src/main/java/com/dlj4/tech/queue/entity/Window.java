@@ -35,6 +35,7 @@ public class Window {
 
     @OneToMany(mappedBy = "responseWindow", cascade = CascadeType.MERGE, orphanRemoval = true)
     List<TransferRequest> approvedOrders;
+    @Builder.Default
     private boolean deleted = Boolean.FALSE;
 
 

@@ -185,7 +185,7 @@ public class ObjectsDataMapper {
     {
         return WindowRoleDAO.builder()
                 .window(window)
-                .ServiceIds(ServiceIds)
+                .serviceIds(ServiceIds)
                 .build();
     }
 

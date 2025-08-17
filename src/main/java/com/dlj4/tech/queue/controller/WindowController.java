@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -22,7 +23,7 @@ public class    WindowController {
     return new ResponseEntity<List<WindowResponse>>(windowService.getWindowsList(), HttpStatus.OK);
 }
     @PostMapping("/create")
-    public ResponseEntity<WindowResponse> createWindow(@RequestBody WindowRequest windowRequest)
+    public ResponseEntity<WindowResponse> createWindow(@Valid @RequestBody WindowRequest windowRequest)
     {
         WindowResponse windowResponse= windowService.createWindow(windowRequest);
 
@@ -31,7 +32,7 @@ public class    WindowController {
 
     @PutMapping("/edit/{id}")
 
-    public ResponseEntity<WindowResponse>  updateWindow(@PathVariable("id") Long id, @RequestBody  WindowRequest windowRequest)
+    public ResponseEntity<WindowResponse>  updateWindow(@PathVariable("id") Long id, @Valid @RequestBody WindowRequest windowRequest)
     {
         WindowResponse windowResponse=   windowService.updateWindow(id,windowRequest);
 

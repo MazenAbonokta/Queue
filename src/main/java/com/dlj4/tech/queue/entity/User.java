@@ -43,6 +43,7 @@ public class User implements UserDetails {
     @Column
     private String status;
 
+    @Builder.Default
     private boolean deleted = Boolean.FALSE;
     @Column
     private String name;

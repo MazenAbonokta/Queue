@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 
 @RestController
@@ -15,7 +16,7 @@ public class ConfigController {
     @Autowired
     ConfigService configService;
     @PostMapping("/upload-screen-config")
-    public ResponseEntity<ConfigResponse> UploadScreenConfig(@RequestBody ConfigRequest configRequest) {
+    public ResponseEntity<ConfigResponse> UploadScreenConfig(@Valid @RequestBody ConfigRequest configRequest) {
 
         if(configRequest.getId()==null || configRequest.getId().toString()=="")
         {
@@ -27,7 +28,7 @@ public class ConfigController {
 
     }
     @PutMapping("/update-screen-config")
-    public ResponseEntity<ConfigResponse> UpdateScreenConfig(@RequestBody ConfigRequest configRequest) {
+    public ResponseEntity<ConfigResponse> UpdateScreenConfig(@Valid @RequestBody ConfigRequest configRequest) {
 
         if(configRequest.getId().toString()=="")
         {

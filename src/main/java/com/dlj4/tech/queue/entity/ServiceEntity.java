@@ -33,6 +33,7 @@ public class ServiceEntity {
     private ServiceStatus serviceStatus;
     @Enumerated(EnumType.STRING)
     private ServiceType serviceType;
+    @Builder.Default
     private boolean deleted = Boolean.FALSE;
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "category_id")

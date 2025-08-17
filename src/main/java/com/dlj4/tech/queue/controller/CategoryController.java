@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -18,13 +19,13 @@ public class CategoryController {
     @Autowired
     CategoryService categoryService;
     @PostMapping("/add")
-    public ResponseEntity<CategoryResponse> AddCategory(@RequestBody CategoryRequest categoryRequest)
+    public ResponseEntity<CategoryResponse> AddCategory(@Valid @RequestBody CategoryRequest categoryRequest)
     {
         CategoryResponse category= categoryService.createCategory(categoryRequest.getName());
         return new ResponseEntity<CategoryResponse>(category,HttpStatus.CREATED);
     }
     @PutMapping("/update")
-    public void updateCategory(@RequestBody CategoryRequest categoryRequest)
+    public void updateCategory(@Valid @RequestBody CategoryRequest categoryRequest)
     {
         categoryService.updatedCategory(categoryRequest.getId(), categoryRequest.getName());
 
