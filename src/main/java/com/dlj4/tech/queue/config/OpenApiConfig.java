@@ -98,3 +98,4 @@ public class OpenApiConfig {
                                 .description("Enter JWT token obtained from /auth/signin endpoint")));
     }
 }
+
