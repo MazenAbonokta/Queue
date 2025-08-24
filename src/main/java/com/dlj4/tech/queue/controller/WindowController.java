@@ -168,7 +168,7 @@ public class WindowController {
             @Parameter(description = "Window ID to update", required = true, example = "1")
             @PathVariable("id") Long id,
             @Parameter(description = "Updated window details", required = true)
-            @Valid @RequestBody WindowRequest windowRequest)
+           WindowRequest windowRequest)
     {
         WindowResponse windowResponse=   windowService.updateWindow(id,windowRequest);
         return  new ResponseEntity<WindowResponse>(windowResponse,HttpStatus.CREATED);

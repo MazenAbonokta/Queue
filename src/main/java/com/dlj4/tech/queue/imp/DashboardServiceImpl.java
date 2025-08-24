@@ -17,6 +17,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -65,7 +68,7 @@ public class DashboardServiceImpl implements DashboardService {
         // Count orders by status
         List<Order> allOrders = orderRepository.findAll();
         long pendingOrders = allOrders.stream().filter(o -> o.getOrderStatus() == OrderStatus.PENDING).count();
-        long bookedOrders = allOrders.stream().filter(o -> o.getOrderStatus() == OrderStatus.BOOKED).count();
+        long bookedOrders = allOrders.stream().filter(o -> o.getOrderStatus() == OrderStatus.CALLED).count();
         long calledOrders = allOrders.stream().filter(o -> o.getOrderStatus() == OrderStatus.CALLED).count();
         long cancelledOrders = allOrders.stream().filter(o -> o.getOrderStatus() == OrderStatus.CANCELLED).count();
         // long transferOrders = allOrders.stream().filter(o -> o.getOrderStatus() == OrderStatus.TRANSFER).count();
@@ -79,14 +82,96 @@ public class DashboardServiceImpl implements DashboardService {
         // Count windows
         long totalWindows = windowRepository.count();
         
+        // Count active windows (windows with active orders or users)
+        long activeWindows = windowRepository.findAll().stream()
+            .filter(window -> !window.getOrders().isEmpty() || !window.getUsers().isEmpty())
+            .count();
+        
         // Count users
         long totalUsers = userRepository.count();
+        
+        // Count active users (users with LOGIN status)
+        long activeUsers = userRepository.findAll().stream()
+            .filter(user -> "LOGIN".equals(user.getStatus()))
+            .count();
+        
+        // Count users by role
+        long operatorUsers = userRepository.findAll().stream()
+            .filter(user -> user.getRole() == Role.USER)
+            .count();
+        
+        long customerUsers = userRepository.findAll().stream()
+            .filter(user -> user.getRole() == Role.ADMIN)
+            .count();
         
         // Count categories
         long totalCategories = categoryRepository.count();
         
         // Count transfer requests
         long totalTransferRequests = transferRequestRepository.count();
+        
+        // Count transfer requests by status
+        long pendingTransferRequests = transferRequestRepository.findAll().stream()
+            .filter(tr -> tr.getRequestStatus() == TransferRequestStatus.SEND)
+            .count();
+        
+        long approvedTransferRequests = transferRequestRepository.findAll().stream()
+            .filter(tr -> tr.getRequestStatus() == TransferRequestStatus.APPROVED)
+            .count();
+        
+        long rejectedTransferRequests = transferRequestRepository.findAll().stream()
+            .filter(tr -> tr.getRequestStatus() == TransferRequestStatus.REJECTED)
+            .count();
+        
+        // Calculate wait time statistics from OrderActions
+        List<OrderAction> allOrderActions = orderActionsRepository.findAll();
+        
+        Double averageWaitTime = null;
+        Long longestWaitTime = null;
+        Long shortestWaitTime = null;
+        
+        // Group order actions by order to find PENDING and CALLED timestamps
+        Map<Long, List<OrderAction>> orderActionsByOrderId = allOrderActions.stream()
+            .collect(Collectors.groupingBy(action -> action.getOrder().getId()));
+        
+        List<Long> waitTimes = new ArrayList<>();
+        
+        for (List<OrderAction> actions : orderActionsByOrderId.values()) {
+            // Find PENDING action
+            Optional<OrderAction> pendingAction = actions.stream()
+                .filter(action -> OrderStatus.PENDING.name().equals(action.getOrderStatus()))
+                .findFirst();
+            
+            // Find CALLED action
+            Optional<OrderAction> calledAction = actions.stream()
+                .filter(action -> OrderStatus.CALLED.name().equals(action.getOrderStatus()))
+                .findFirst();
+            
+            // Calculate wait time if both actions exist
+            if (pendingAction.isPresent() && calledAction.isPresent()) {
+                long waitTimeMillis = calledAction.get().getCreatedAt().toInstant().toEpochMilli() - 
+                                    pendingAction.get().getCreatedAt().toInstant().toEpochMilli();
+                long waitTimeSeconds = waitTimeMillis / 1000; // Convert to seconds
+                waitTimes.add(waitTimeSeconds);
+            }
+        }
+        
+        if (!waitTimes.isEmpty()) {
+            averageWaitTime = waitTimes.stream()
+                .mapToLong(Long::longValue)
+                .average()
+                .orElse(0.0);
+            
+            longestWaitTime = waitTimes.stream()
+                .mapToLong(Long::longValue)
+                .max()
+                .orElse(0L);
+            
+            shortestWaitTime = waitTimes.stream()
+                .mapToLong(Long::longValue)
+                .min()
+                .orElse(0L);
+        }
         
         return DashboardSummaryResponse.builder()
             .totalOrders(totalOrders)
@@ -99,9 +184,19 @@ public class DashboardServiceImpl implements DashboardService {
             .activeServices(activeServices)
             .inactiveServices(inactiveServices)
             .totalWindows(totalWindows)
+            .activeWindows(activeWindows)
             .totalUsers(totalUsers)
+            .activeUsers(activeUsers)
+            .operatorUsers(operatorUsers)
+            .customerUsers(customerUsers)
             .totalCategories(totalCategories)
             .totalTransferRequests(totalTransferRequests)
+            .pendingTransferRequests(pendingTransferRequests)
+            .approvedTransferRequests(approvedTransferRequests)
+            .rejectedTransferRequests(rejectedTransferRequests)
+            .averageWaitTime(averageWaitTime)
+            .longestWaitTime(longestWaitTime)
+            .shortestWaitTime(shortestWaitTime)
             .build();
     }
 

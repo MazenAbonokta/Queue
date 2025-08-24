@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class OrderDAO {
     
     @NotNull(message = "Order ID is required")
-    @Positive(message = "Order ID must be a positive number")
+   // @Positive(message = "Order ID must be a positive number")
     private Long orderId;
     
     @NotNull(message = "Service ID is required")

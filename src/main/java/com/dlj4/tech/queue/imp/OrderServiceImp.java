@@ -151,7 +151,14 @@ public class OrderServiceImp implements OrderService {
         // Create and save the order
         Order order = objectsDataMapper.createOrderEntity(null, fetchedService, newCurrentNumber);
         order = orderRepository.save(order);
-        
+
+        OrderAction orderAction = OrderAction.builder()
+                .order(order)
+                .createdAt(ZonedDateTime.now(ZoneId.of("UTC")))
+                .orderStatus(OrderStatus.PENDING.toString())
+
+                .build();
+        orderActionsRepository.save(orderAction);
         // Generate code for the ticket
         String code = order.getService().getCode() + 
                 order.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
