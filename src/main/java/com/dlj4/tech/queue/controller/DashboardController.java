@@ -52,34 +52,20 @@ public class DashboardController {
     // ==================== SUMMARY STATISTICS ====================
     
     @Operation(
-            summary = "Get Dashboard Summary",
-            description = "Retrieve comprehensive dashboard statistics including order counts, service status, and queue metrics",
+            summary = "Get Dashboard Summary Per Day",
+            description = "Retrieve dashboard statistics broken down by day for the last 30 days (one month)",
             security = {@SecurityRequirement(name = "JWT Authentication"), @SecurityRequirement(name = "Custom Token Authentication")}
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Dashboard summary retrieved successfully",
-                    content = @Content(schema = @Schema(implementation = DashboardSummaryResponse.class),
-                            examples = @ExampleObject(value = """
-                                    {
-                                      "totalOrders": 25,
-                                      "todayOrders": 18,
-                                      "pendingOrders": 7,
-                                      "completedOrders": 5,
-                                      "cancelledOrders": 2,
-                                      "inProgressOrders": 3,
-                                      "totalServices": 10,
-                                      "activeServices": 9,
-                                      "totalWindows": 8,
-                                      "totalUsers": 10,
-                                      "totalCategories": 5
-                                    }"""))),
+            @ApiResponse(responseCode = "200", description = "Daily dashboard summaries retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = DashboardSummaryResponse.class))),
             @ApiResponse(responseCode = "401", description = "Authentication required"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/summary")
-    public ResponseEntity<DashboardSummaryResponse> getDashboardSummary() {
-        DashboardSummaryResponse summary = dashboardService.getDashboardSummary();
-        return new ResponseEntity<>(summary, HttpStatus.OK);
+    public ResponseEntity<List<DashboardSummaryResponse>> getDashboardSummary() {
+        List<DashboardSummaryResponse> dailySummaries = dashboardService.getDashboardSummary();
+        return new ResponseEntity<>(dailySummaries, HttpStatus.OK);
     }
 
     // ==================== ALL ENTITIES LISTS ====================

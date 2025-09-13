@@ -16,6 +16,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
@@ -56,149 +58,155 @@ public class DashboardServiceImpl implements DashboardService {
     private ObjectsDataMapper objectsDataMapper;
 
     @Override
-    public DashboardSummaryResponse getDashboardSummary() {
-        // Count total orders
-        long totalOrders = orderRepository.count();
+    public List<DashboardSummaryResponse> getDashboardSummary() {
+        List<DashboardSummaryResponse> dailySummaries = new ArrayList<>();
         
-        // Count today's orders
-        ZonedDateTime startOfDay = ZonedDateTime.now().toLocalDate().atStartOfDay(ZonedDateTime.now().getZone());
-        ZonedDateTime endOfDay = startOfDay.plusDays(1);
-        long todayOrders = orderRepository.findByTodayAndCreatedAtBefore(true, endOfDay).size();
+        // Get current date and calculate the start date (last 30 days by default)
+        LocalDate currentDate = LocalDate.now();
+        LocalDate startDate = currentDate.minusDays(29); // Include today and 29 previous days
         
-        // Count orders by status
-        List<Order> allOrders = orderRepository.findAll();
-        long pendingOrders = allOrders.stream().filter(o -> o.getOrderStatus() == OrderStatus.PENDING).count();
-        long bookedOrders = allOrders.stream().filter(o -> o.getOrderStatus() == OrderStatus.CALLED).count();
-        long calledOrders = allOrders.stream().filter(o -> o.getOrderStatus() == OrderStatus.CALLED).count();
-        long cancelledOrders = allOrders.stream().filter(o -> o.getOrderStatus() == OrderStatus.CANCELLED).count();
-        // long transferOrders = allOrders.stream().filter(o -> o.getOrderStatus() == OrderStatus.TRANSFER).count();
-        
-        // Count services
-        long totalServices = serviceRepository.count();
-        long activeServices = serviceRepository.findAllByServiceStatusAndServiceType(
-            ServiceStatus.ACTIVE, null).size();
-        long inactiveServices = totalServices - activeServices;
-        
-        // Count windows
-        long totalWindows = windowRepository.count();
-        
-        // Count active windows (windows with active orders or users)
-        long activeWindows = windowRepository.findAll().stream()
-            .filter(window -> !window.getOrders().isEmpty() || !window.getUsers().isEmpty())
-            .count();
-        
-        // Count users
-        long totalUsers = userRepository.count();
-        
-        // Count active users (users with LOGIN status)
-        long activeUsers = userRepository.findAll().stream()
-            .filter(user -> "LOGIN".equals(user.getStatus()))
-            .count();
-        
-        // Count users by role
-        long operatorUsers = userRepository.findAll().stream()
-            .filter(user -> user.getRole() == Role.USER)
-            .count();
-        
-        long customerUsers = userRepository.findAll().stream()
-            .filter(user -> user.getRole() == Role.ADMIN)
-            .count();
-        
-        // Count categories
-        long totalCategories = categoryRepository.count();
-        
-        // Count transfer requests
-        long totalTransferRequests = transferRequestRepository.count();
-        
-        // Count transfer requests by status
-        long pendingTransferRequests = transferRequestRepository.findAll().stream()
-            .filter(tr -> tr.getRequestStatus() == TransferRequestStatus.SEND)
-            .count();
-        
-        long approvedTransferRequests = transferRequestRepository.findAll().stream()
-            .filter(tr -> tr.getRequestStatus() == TransferRequestStatus.APPROVED)
-            .count();
-        
-        long rejectedTransferRequests = transferRequestRepository.findAll().stream()
-            .filter(tr -> tr.getRequestStatus() == TransferRequestStatus.REJECTED)
-            .count();
-        
-        // Calculate wait time statistics from OrderActions
-        List<OrderAction> allOrderActions = orderActionsRepository.findAll();
-        
-        Double averageWaitTime = null;
-        Long longestWaitTime = null;
-        Long shortestWaitTime = null;
-        
-        // Group order actions by order to find PENDING and CALLED timestamps
-        Map<Long, List<OrderAction>> orderActionsByOrderId = allOrderActions.stream()
-            .collect(Collectors.groupingBy(action -> action.getOrder().getId()));
-        
-        List<Long> waitTimes = new ArrayList<>();
-        
-        for (List<OrderAction> actions : orderActionsByOrderId.values()) {
-            // Find PENDING action
-            Optional<OrderAction> pendingAction = actions.stream()
-                .filter(action -> OrderStatus.PENDING.name().equals(action.getOrderStatus()))
-                .findFirst();
+        // Generate daily summaries
+        for (LocalDate date = startDate; !date.isAfter(currentDate); date = date.plusDays(1)) {
+            ZonedDateTime startOfDay = date.atStartOfDay(ZonedDateTime.now().getZone());
+            ZonedDateTime endOfDay = startOfDay.plusDays(1);
             
-            // Find CALLED action
-            Optional<OrderAction> calledAction = actions.stream()
-                .filter(action -> OrderStatus.CALLED.name().equals(action.getOrderStatus()))
-                .findFirst();
+            // Get orders for this specific day
+            List<Order> dayOrders = orderRepository.findAll().stream()
+                .filter(order -> order.getCreatedAt() != null && 
+                               order.getCreatedAt().isAfter(startOfDay) && 
+                               order.getCreatedAt().isBefore(endOfDay))
+                .collect(Collectors.toList());
             
-            // Calculate wait time if both actions exist
-            if (pendingAction.isPresent() && calledAction.isPresent()) {
-                long waitTimeMillis = calledAction.get().getCreatedAt().toInstant().toEpochMilli() - 
-                                    pendingAction.get().getCreatedAt().toInstant().toEpochMilli();
-                long waitTimeSeconds = waitTimeMillis / 1000; // Convert to seconds
-                waitTimes.add(waitTimeSeconds);
+            // Count orders by status for this day
+            long dayTotalOrders = dayOrders.size();
+            long dayPendingOrders = dayOrders.stream().filter(o -> o.getOrderStatus() == OrderStatus.PENDING).count();
+            long dayCompletedOrders = dayOrders.stream().filter(o -> o.getOrderStatus() == OrderStatus.CALLED).count();
+            long dayCancelledOrders = dayOrders.stream().filter(o -> o.getOrderStatus() == OrderStatus.CANCELLED).count();
+            long dayInProgressOrders = dayOrders.stream().filter(o -> o.getOrderStatus() == OrderStatus.BOOKED).count();
+            
+            // Get order actions for this day
+            List<OrderAction> dayOrderActions = orderActionsRepository.findAll().stream()
+                .filter(action -> action.getCreatedAt() != null && 
+                                action.getCreatedAt().isAfter(startOfDay) && 
+                                action.getCreatedAt().isBefore(endOfDay))
+                .collect(Collectors.toList());
+            
+            // Calculate wait time statistics for this day
+            Double averageWaitTime = null;
+            Long dayLongestWaitTime = null;
+            Long dayShortestWaitTime = null;
+            
+            // Group order actions by order to find PENDING and CALLED timestamps for this day
+            Map<Long, List<OrderAction>> dayOrderActionsByOrderId = dayOrderActions.stream()
+                .collect(Collectors.groupingBy(action -> action.getOrder().getId()));
+            
+            List<Long> dayWaitTimes = new ArrayList<>();
+            
+            for (List<OrderAction> actions : dayOrderActionsByOrderId.values()) {
+                // Find PENDING action
+                Optional<OrderAction> pendingAction = actions.stream()
+                    .filter(action -> OrderStatus.PENDING.name().equals(action.getOrderStatus()))
+                    .findFirst();
+                
+                // Find BOOKED action
+                Optional<OrderAction> bookedAction = actions.stream()
+                    .filter(action -> OrderStatus.BOOKED.name().equals(action.getOrderStatus()))
+                    .findFirst();
+                
+                // Calculate wait time if both actions exist
+                if (pendingAction.isPresent() && bookedAction.isPresent()) {
+                    long waitTimeMillis = bookedAction.get().getCreatedAt().toInstant().toEpochMilli() - 
+                                        pendingAction.get().getCreatedAt().toInstant().toEpochMilli();
+                    long waitTimeSeconds = waitTimeMillis / 1000; // Convert to seconds
+                    dayWaitTimes.add(waitTimeSeconds);
+                }
             }
+            
+            if (!dayWaitTimes.isEmpty()) {
+                averageWaitTime = dayWaitTimes.stream()
+                    .mapToLong(Long::longValue)
+                    .average()
+                    .orElse(0.0);
+                
+                dayLongestWaitTime = dayWaitTimes.stream()
+                    .mapToLong(Long::longValue)
+                    .max()
+                    .orElse(0L);
+                
+                dayShortestWaitTime = dayWaitTimes.stream()
+                    .mapToLong(Long::longValue)
+                    .min()
+                    .orElse(0L);
+            }
+            
+            // Get transfer requests for this day
+            List<TransferRequest> dayTransferRequests = transferRequestRepository.findAll().stream()
+                .filter(tr -> tr.getCreatedAt() != null && 
+                             tr.getCreatedAt().isAfter(startOfDay) && 
+                             tr.getCreatedAt().isBefore(endOfDay))
+                .collect(Collectors.toList());
+            
+            long dayTotalTransferRequests = dayTransferRequests.size();
+            long dayPendingTransferRequests = dayTransferRequests.stream()
+                .filter(tr -> tr.getRequestStatus() == TransferRequestStatus.SEND)
+                .count();
+            long dayApprovedTransferRequests = dayTransferRequests.stream()
+                .filter(tr -> tr.getRequestStatus() == TransferRequestStatus.APPROVED)
+                .count();
+            long dayRejectedTransferRequests = dayTransferRequests.stream()
+                .filter(tr -> tr.getRequestStatus() == TransferRequestStatus.REJECTED)
+                .count();
+            
+            // Get user actions for this day
+            List<UserActions> dayUserActions = userActionRepository.findAll().stream()
+                .filter(ua -> ua.getCreatedAt() != null && 
+                             ua.getCreatedAt().isAfter(startOfDay) && 
+                             ua.getCreatedAt().isBefore(endOfDay))
+                .collect(Collectors.toList());
+            
+            // Count active users for this day (users with LOGIN status)
+            long dayActiveUsers = dayUserActions.stream()
+                .filter(ua -> "LOGIN".equals(ua.getUserStatus()))
+                .count();
+            
+            // Build daily summary
+            DashboardSummaryResponse dailySummary = DashboardSummaryResponse.builder()
+                .date(date.format(DateTimeFormatter.ISO_LOCAL_DATE)) // YYYY-MM-DD format
+                .dayName(date.getDayOfWeek().name()) // MONDAY, TUESDAY, etc.
+                .totalOrders(dayTotalOrders)
+                .todayOrders(dayTotalOrders) // For daily view, today's orders = total orders for that day
+                .pendingOrders(dayPendingOrders)
+                .completedOrders(dayCompletedOrders+dayInProgressOrders)
+                .cancelledOrders(dayCancelledOrders)
+                .inProgressOrders(dayInProgressOrders)
+                .totalServices(serviceRepository.count()) // These are global counts
+                .activeServices((long) serviceRepository.findAllByServiceStatusAndServiceType(ServiceStatus.ACTIVE, null).size())
+                .inactiveServices(serviceRepository.count() - (long) serviceRepository.findAllByServiceStatusAndServiceType(ServiceStatus.ACTIVE, null).size())
+                .totalWindows(windowRepository.count())
+                .activeWindows(windowRepository.findAll().stream()
+                    .filter(window -> !window.getOrders().isEmpty() || !window.getUsers().isEmpty())
+                    .count())
+                .totalUsers(userRepository.count())
+                .activeUsers(dayActiveUsers)
+                .operatorUsers(userRepository.findAll().stream().filter(user -> user.getRole() == Role.USER).count())
+                .customerUsers(userRepository.findAll().stream().filter(user -> user.getRole() == Role.ADMIN).count())
+                .totalCategories(categoryRepository.count())
+                .totalTransferRequests(dayTotalTransferRequests)
+                .pendingTransferRequests(dayPendingTransferRequests)
+                .approvedTransferRequests(dayApprovedTransferRequests)
+                .rejectedTransferRequests(dayRejectedTransferRequests)
+                .averageWaitTime(averageWaitTime)
+                .longestWaitTime(dayLongestWaitTime)
+                .shortestWaitTime(dayShortestWaitTime)
+                .build();
+            
+            dailySummaries.add(dailySummary);
         }
         
-        if (!waitTimes.isEmpty()) {
-            averageWaitTime = waitTimes.stream()
-                .mapToLong(Long::longValue)
-                .average()
-                .orElse(0.0);
-            
-            longestWaitTime = waitTimes.stream()
-                .mapToLong(Long::longValue)
-                .max()
-                .orElse(0L);
-            
-            shortestWaitTime = waitTimes.stream()
-                .mapToLong(Long::longValue)
-                .min()
-                .orElse(0L);
-        }
-        
-        return DashboardSummaryResponse.builder()
-            .totalOrders(totalOrders)
-            .todayOrders(todayOrders)
-            .pendingOrders(pendingOrders)
-            .completedOrders(bookedOrders)
-            .cancelledOrders(cancelledOrders)
-            .inProgressOrders(calledOrders)
-            .totalServices(totalServices)
-            .activeServices(activeServices)
-            .inactiveServices(inactiveServices)
-            .totalWindows(totalWindows)
-            .activeWindows(activeWindows)
-            .totalUsers(totalUsers)
-            .activeUsers(activeUsers)
-            .operatorUsers(operatorUsers)
-            .customerUsers(customerUsers)
-            .totalCategories(totalCategories)
-            .totalTransferRequests(totalTransferRequests)
-            .pendingTransferRequests(pendingTransferRequests)
-            .approvedTransferRequests(approvedTransferRequests)
-            .rejectedTransferRequests(rejectedTransferRequests)
-            .averageWaitTime(averageWaitTime)
-            .longestWaitTime(longestWaitTime)
-            .shortestWaitTime(shortestWaitTime)
-            .build();
+        return dailySummaries;
     }
+
+
 
     @Override
     public List<CategoryResponse> getAllCategories() {

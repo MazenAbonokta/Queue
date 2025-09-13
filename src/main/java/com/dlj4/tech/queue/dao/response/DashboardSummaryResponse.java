@@ -11,6 +11,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DashboardSummaryResponse {
     
+    // Date Information
+    private String date; // Date in YYYY-MM-DD format
+    private String dayName; // Day name (Monday, Tuesday, etc.)
+    
     // General Statistics
     private Long totalOrders;
     private Long todayOrders;

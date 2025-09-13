@@ -9,7 +9,7 @@ import java.util.List;
 public interface DashboardService {
     
     // Summary Statistics
-    DashboardSummaryResponse getDashboardSummary();
+    List<DashboardSummaryResponse> getDashboardSummary();
     
     // Entity Lists
     List<CategoryResponse> getAllCategories();
